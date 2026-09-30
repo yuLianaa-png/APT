@@ -1,17 +1,44 @@
 version: '3.8'
+
 services:
-  db:
+  # Base de datos para auth-service
+  auth-db:
     image: postgres:15
-    container_name: praticahub_db
+    container_name: auth-db-ph
     environment:
-      POSTGRES_USER: ph_user
-      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: user_auth
+      POSTGRES_PASSWORD: auth_password
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./init-dbs.sql:/docker-entrypoint-initdb.d/init-dbs.sql
+      - auth_postgres_data:/var/lib/postgresql/data
+    networks:
+      - practicahub-network
 
-  volumes:
-    pgdata:
+  # MICROSERVICIOS
+  # Microservicio de Autenticación
+  auth-service:
+    build: ./auth-service
+    container_name: practicahub-auth
+    ports:
+      - "8081:8080"
+    depends_on:
+      - auth-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: user_auth
+      SPRING_DATASOURCE_PASSWORD: auth_password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    networks:
+      - practicahub-network
+
+# REDES Y VOLÚMENES
+networks:
+  practicahub-network:
+    driver: bridge
+
+volumes:
+  auth_postgres_data:
+  practica_postgres_data:
   
