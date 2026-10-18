@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  # Base de datos para auth-service
+  # bd auth-service
   auth-db:
     image: postgres:15
     container_name: auth-db-ph
     environment:
       POSTGRES_DB: auth_db
-      POSTGRES_USER: user_auth
-      POSTGRES_PASSWORD: auth_password
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -16,8 +16,19 @@ services:
     networks:
       - practicahub-network
 
+  # bd nucleo practice
+  practice-db:
+    image: postgres:15
+    container_name: practice-db-ph
+    environment:
+      POSTGRES_USER: ${PRACTICE_DB_USER}
+      POSTGRES_PASSWORD: ${PRACTICE_DB_PASSWORD}
+      POSTGRES_DB: practice_db
+    ports:
+      - "5433:5432"
+
   # MICROSERVICIOS
-  # Microservicio de Autenticación
+  # microservicio de autenticacion
   auth-service:
     build: ./auth-service
     container_name: practicahub-auth
@@ -27,11 +38,27 @@ services:
       - auth-db
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/auth_db
-      SPRING_DATASOURCE_USERNAME: user_auth
-      SPRING_DATASOURCE_PASSWORD: auth_password
+      SPRING_DATASOURCE_USERNAME: ${AUTH_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     networks:
       - practicahub-network
+
+  # microservico principal practica
+  practice-service:
+    build:
+      context: ./practica-service
+      dockerfile: Dockerfile
+    container_name: practicahub-practice
+    ports:
+      - "8082:8082"
+    depends_on:
+      - practica-db-ph
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://practice-db:5432/practice_db
+      SPRING_DATASOURCE_USERNAME: ${PRACTICE_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${PRACTICE_DB_PASSWORD}
+
 
 # REDES Y VOLÚMENES
 networks:
