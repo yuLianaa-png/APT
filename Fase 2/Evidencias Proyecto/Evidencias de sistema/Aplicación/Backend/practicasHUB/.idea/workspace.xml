@@ -5,10 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a4edd532-e97f-4ecc-87ed-77ac68bfd501" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/models/StudentGroup.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/controllers/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/controllers/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/services/userService.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/services/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/models/PracticeGroup.java" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/models/PracticeGroup.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,6 +18,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -47,60 +48,60 @@
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
       <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0" />
-      <entry key="S30" value="1.0" />
-      <entry key="S60" value="1.0" />
-      <entry key="M2" value="1.0000000000342342" />
-      <entry key="M5" value="1.000566861853356" />
-      <entry key="M10" value="1.1750418197388282" />
-      <entry key="M15" value="2.2513591083219326" />
-      <entry key="M30" value="11.521560195622722" />
-      <entry key="H1" value="45.01966658816036" />
-      <entry key="H2" value="120.16881796623619" />
-      <entry key="H4" value="215.83884385625205" />
-      <entry key="D1" value="367.7991636330959" />
-      <entry key="W1" value="404.4962312133847" />
+      <entry key="MS500" value="1.0000041977449985" />
+      <entry key="S2" value="1.0486643727552372" />
+      <entry key="S5" value="1.394685776929427" />
+      <entry key="S10" value="1.9491010214333957" />
+      <entry key="S30" value="4.35462952399493" />
+      <entry key="S60" value="8.005262841525044" />
+      <entry key="M2" value="13.061572000645315" />
+      <entry key="M5" value="19.42846949604114" />
+      <entry key="M10" value="24.929099538402994" />
+      <entry key="M15" value="30.53848263763491" />
+      <entry key="M30" value="49.0747583532115" />
+      <entry key="H1" value="86.46436118834308" />
+      <entry key="H2" value="161.36523703765013" />
+      <entry key="H4" value="272.97951321369845" />
+      <entry key="D1" value="488.9265874613077" />
+      <entry key="W1" value="547.3998490557074" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="0.0" />
-      <entry key="S5" value="1.38348731398464E-310" />
-      <entry key="S10" value="1.1762175701955005E-155" />
-      <entry key="S30" value="2.290108245594181E-52" />
-      <entry key="S60" value="1.7216134878804983E-26" />
-      <entry key="M2" value="2.1718626290142549E-13" />
-      <entry key="M5" value="2.2723944012411846E-5" />
-      <entry key="M10" value="0.012207379556693425" />
-      <entry key="M15" value="0.11101603631164322" />
-      <entry key="M30" value="1.3899892365126414" />
-      <entry key="H1" value="7.239391560887476" />
-      <entry key="H2" value="19.893612955829486" />
-      <entry key="H4" value="34.78878894963627" />
-      <entry key="D1" value="56.92931715059769" />
-      <entry key="W1" value="62.09115403909288" />
+      <entry key="MS100" value="2.760820534016897E-96" />
+      <entry key="MS500" value="7.730500903932E-20" />
+      <entry key="S2" value="1.667446501313718E-5" />
+      <entry key="S5" value="0.012269352270253747" />
+      <entry key="S10" value="0.11092442458250633" />
+      <entry key="S30" value="0.5491070605850498" />
+      <entry key="S60" value="1.1495109876659508" />
+      <entry key="M2" value="2.232095493019729" />
+      <entry key="M5" value="3.882865841912974" />
+      <entry key="M10" value="5.034318995450975" />
+      <entry key="M15" value="5.98551068987193" />
+      <entry key="M30" value="8.629612421453334" />
+      <entry key="H1" value="13.406677375151721" />
+      <entry key="H2" value="24.011667401023757" />
+      <entry key="H4" value="40.31527950617341" />
+      <entry key="D1" value="71.27892599222426" />
+      <entry key="W1" value="79.51334292638185" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.8645372313078652" />
-      <entry key="MS500" value="0.9713074955416333" />
-      <entry key="S2" value="0.992748375440308" />
-      <entry key="S5" value="0.9970930153280337" />
-      <entry key="S10" value="0.9985454498058832" />
-      <entry key="S30" value="0.9995149146655609" />
-      <entry key="S60" value="0.9997574279121715" />
-      <entry key="M2" value="0.9998787066344622" />
-      <entry key="M5" value="1.0005403610285288" />
-      <entry key="M10" value="1.187073835686773" />
-      <entry key="M15" value="2.3615504251771813" />
-      <entry key="M30" value="12.907351164700259" />
-      <entry key="H1" value="52.24852364361951" />
-      <entry key="H2" value="140.04730894162333" />
-      <entry key="H4" value="250.61391931439377" />
-      <entry key="D1" value="424.7246077471043" />
-      <entry key="W1" value="466.5867780234607" />
+      <entry key="MS100" value="0.02468879099573053" />
+      <entry key="MS500" value="0.47698144035970286" />
+      <entry key="S2" value="0.8693616222147837" />
+      <entry key="S5" value="1.29324156576071" />
+      <entry key="S10" value="1.9571109790424654" />
+      <entry key="S30" value="4.7865691265904635" />
+      <entry key="S60" value="9.014418208601546" />
+      <entry key="M2" value="15.155525652956767" />
+      <entry key="M5" value="23.21923443850636" />
+      <entry key="M10" value="29.904787621102965" />
+      <entry key="M15" value="36.47845299378827" />
+      <entry key="M30" value="57.673172634745285" />
+      <entry key="H1" value="99.84796162519831" />
+      <entry key="H2" value="185.35702239640472" />
+      <entry key="H4" value="313.27821505404285" />
+      <entry key="D1" value="560.200576430094" />
+      <entry key="W1" value="626.9124025960725" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -115,32 +116,51 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;backend&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "feature/system-core",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.jshint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.jshint": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\EQUIPO\Desktop\APT\Fase 2\Evidencias Proyecto\Evidencias de sistema\Aplicación\Backend\practicasHUB\auth-service\src\main\java\com\top\auth_service\security" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="practicasHUB" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="practicasHUB" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
+      <deployment type="docker-compose.yml">
+        <settings />
+      </deployment>
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
