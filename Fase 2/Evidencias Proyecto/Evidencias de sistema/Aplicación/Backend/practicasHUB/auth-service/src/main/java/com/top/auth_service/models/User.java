@@ -1,4 +1,4 @@
-package models;
+package com.top.auth_service.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;

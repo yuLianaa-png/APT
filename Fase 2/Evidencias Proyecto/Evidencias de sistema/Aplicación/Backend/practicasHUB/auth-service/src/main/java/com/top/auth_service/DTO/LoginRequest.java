@@ -1,4 +1,4 @@
-package DTO;
+package com.top.auth_service.DTO;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

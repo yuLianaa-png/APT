@@ -1,4 +1,4 @@
-package security;
+package com.top.auth_service.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

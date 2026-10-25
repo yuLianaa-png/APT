@@ -4,11 +4,29 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a4edd532-e97f-4ecc-87ed-77ac68bfd501" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/models/StudentGroup.java" afterDir="false" />
+    <list default="true" id="a4edd532-e97f-4ecc-87ed-77ac68bfd501" name="Changes" comment="fix: arreglo en funcionamiento del sistema">
+      <change afterPath="$PROJECT_DIR$/practice-service/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/models/PracticeGroup.java" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/models/PracticeGroup.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/DTO/LoginRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/DTO/LoginRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/controllers/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/controllers/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/models/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/models/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/repositories/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/repositories/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/security/JwtUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/security/JwtUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/security/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/services/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/services/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practica-service/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/.gitattributes" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practica-service/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practica-service/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practica-service/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/mvnw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practica-service/mvnw.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/mvnw.cmd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practica-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practica-service/src/main/java/com/top/practica_service/PracticaServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/PracticeServiceApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practica-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practica-service/src/test/java/com/top/practica_service/PracticaServiceApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/test/java/com/top/practica_service/PracticaServiceApplicationTests.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,7 +36,6 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -48,61 +65,64 @@
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
       <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0000041977449985" />
-      <entry key="S2" value="1.0486643727552372" />
-      <entry key="S5" value="1.394685776929427" />
-      <entry key="S10" value="1.9491010214333957" />
-      <entry key="S30" value="4.35462952399493" />
-      <entry key="S60" value="8.005262841525044" />
-      <entry key="M2" value="13.061572000645315" />
-      <entry key="M5" value="19.42846949604114" />
-      <entry key="M10" value="24.929099538402994" />
-      <entry key="M15" value="30.53848263763491" />
-      <entry key="M30" value="49.0747583532115" />
-      <entry key="H1" value="86.46436118834308" />
-      <entry key="H2" value="161.36523703765013" />
-      <entry key="H4" value="272.97951321369845" />
-      <entry key="D1" value="488.9265874613077" />
-      <entry key="W1" value="547.3998490557074" />
+      <entry key="MS500" value="1.0000000000000775" />
+      <entry key="S2" value="1.0005276979502145" />
+      <entry key="S5" value="1.0488600791576457" />
+      <entry key="S10" value="1.2211048538193272" />
+      <entry key="S30" value="1.797890384153002" />
+      <entry key="S60" value="3.2570283548421273" />
+      <entry key="M2" value="6.362630964903141" />
+      <entry key="M5" value="12.966170644501062" />
+      <entry key="M10" value="21.077759757662548" />
+      <entry key="M15" value="28.616984845862696" />
+      <entry key="M30" value="49.29121358278256" />
+      <entry key="H1" value="86.80907491763566" />
+      <entry key="H2" value="161.6629200987894" />
+      <entry key="H4" value="268.6136864289708" />
+      <entry key="D1" value="463.77655518547664" />
+      <entry key="W1" value="514.8128538407116" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="2.760820534016897E-96" />
-      <entry key="MS500" value="7.730500903932E-20" />
-      <entry key="S2" value="1.667446501313718E-5" />
-      <entry key="S5" value="0.012269352270253747" />
-      <entry key="S10" value="0.11092442458250633" />
-      <entry key="S30" value="0.5491070605850498" />
-      <entry key="S60" value="1.1495109876659508" />
-      <entry key="M2" value="2.232095493019729" />
-      <entry key="M5" value="3.882865841912974" />
-      <entry key="M10" value="5.034318995450975" />
-      <entry key="M15" value="5.98551068987193" />
-      <entry key="M30" value="8.629612421453334" />
-      <entry key="H1" value="13.406677375151721" />
-      <entry key="H2" value="24.011667401023757" />
-      <entry key="H4" value="40.31527950617341" />
-      <entry key="D1" value="71.27892599222426" />
-      <entry key="W1" value="79.51334292638185" />
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="4.229117256540378E-301" />
+      <entry key="S2" value="8.064536719157345E-76" />
+      <entry key="S5" value="9.333747878792731E-31" />
+      <entry key="S10" value="1.084080227141582E-15" />
+      <entry key="S30" value="1.6671771704617628E-5" />
+      <entry key="S60" value="0.008307661689003902" />
+      <entry key="M2" value="0.22356698352514345" />
+      <entry key="M5" value="1.758490239033546" />
+      <entry key="M10" value="3.791034652269471" />
+      <entry key="M15" value="5.155584376273515" />
+      <entry key="M30" value="7.655378551769805" />
+      <entry key="H1" value="12.04955480720591" />
+      <entry key="H2" value="22.774038263327615" />
+      <entry key="H4" value="38.52849070755164" />
+      <entry key="D1" value="66.54234863915251" />
+      <entry key="W1" value="73.71475983340491" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.02468879099573053" />
-      <entry key="MS500" value="0.47698144035970286" />
-      <entry key="S2" value="0.8693616222147837" />
-      <entry key="S5" value="1.29324156576071" />
-      <entry key="S10" value="1.9571109790424654" />
-      <entry key="S30" value="4.7865691265904635" />
-      <entry key="S60" value="9.014418208601546" />
-      <entry key="M2" value="15.155525652956767" />
-      <entry key="M5" value="23.21923443850636" />
-      <entry key="M10" value="29.904787621102965" />
-      <entry key="M15" value="36.47845299378827" />
-      <entry key="M30" value="57.673172634745285" />
-      <entry key="H1" value="99.84796162519831" />
-      <entry key="H2" value="185.35702239640472" />
-      <entry key="H4" value="313.27821505404285" />
-      <entry key="D1" value="560.200576430094" />
-      <entry key="W1" value="626.9124025960725" />
+      <entry key="MS100" value="1.118502568466071E-6" />
+      <entry key="MS500" value="0.06452490846777814" />
+      <entry key="S2" value="0.5045257580862212" />
+      <entry key="S5" value="0.8090101064609302" />
+      <entry key="S10" value="1.0927534436955149" />
+      <entry key="S30" value="1.7529596905308362" />
+      <entry key="S60" value="3.242143811606805" />
+      <entry key="M2" value="6.570399144165724" />
+      <entry key="M5" value="14.705934311057941" />
+      <entry key="M10" value="24.848949104003264" />
+      <entry key="M15" value="33.75337475379994" />
+      <entry key="M30" value="56.93011816785823" />
+      <entry key="H1" value="98.84364335896106" />
+      <entry key="H2" value="184.4210283225653" />
+      <entry key="H4" value="307.12776332628516" />
+      <entry key="D1" value="530.3145215976476" />
+      <entry key="W1" value="588.5269138918674" />
     </decayedShown>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4,
@@ -140,21 +160,13 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\EQUIPO\Desktop\APT\Fase 2\Evidencias Proyecto\Evidencias de sistema\Aplicación\Backend\practicasHUB\practice-service" />
+      <recent name="C:\Users\EQUIPO\Desktop\APT\Fase 2\Evidencias Proyecto\Evidencias de sistema\Aplicación\Backend\practicasHUB\practice-service\src\main\resources" />
+      <recent name="C:\Users\EQUIPO\Desktop\APT\Fase 2\Evidencias Proyecto\Evidencias de sistema\Aplicación\Backend\practicasHUB\practice-service\src\main\java\com\top\practice_service" />
       <recent name="C:\Users\EQUIPO\Desktop\APT\Fase 2\Evidencias Proyecto\Evidencias de sistema\Aplicación\Backend\practicasHUB\auth-service\src\main\java\com\top\auth_service\security" />
     </key>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="practicasHUB" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="practicasHUB" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
     <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
       <deployment type="docker-compose.yml">
         <settings />
@@ -182,5 +194,9 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="fix: arreglo en funcionamiento del sistema" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: arreglo en funcionamiento del sistema" />
   </component>
 </project>

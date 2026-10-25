@@ -1,7 +1,7 @@
-package controllers;
+package com.top.auth_service.controllers;
 
-import DTO.LoginRequest;
-import models.User;
+import com.top.auth_service.DTO.LoginRequest;
+import com.top.auth_service.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import security.JwtUtil;
-import services.UserService;
+import com.top.auth_service.security.JwtUtil;
+import com.top.auth_service.services.UserService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +21,6 @@ import java.util.Map;
 public class AuthController {
     @Autowired
     private UserService userService;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private JwtUtil jwtUtil;

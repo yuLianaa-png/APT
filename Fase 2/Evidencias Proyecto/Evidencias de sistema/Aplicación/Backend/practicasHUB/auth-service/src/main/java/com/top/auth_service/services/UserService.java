@@ -1,10 +1,10 @@
-package services;
+package com.top.auth_service.services;
 
-import models.User;
+import com.top.auth_service.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import repositories.UserRepository;
+import com.top.auth_service.repositories.UserRepository;
 
 @Service
 public class UserService {

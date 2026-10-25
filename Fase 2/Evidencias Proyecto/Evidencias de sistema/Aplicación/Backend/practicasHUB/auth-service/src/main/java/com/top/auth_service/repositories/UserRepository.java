@@ -1,6 +1,6 @@
-package repositories;
+package com.top.auth_service.repositories;
 
-import models.User;
+import com.top.auth_service.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
