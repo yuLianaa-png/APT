@@ -3,6 +3,7 @@ import Login from '../pages/Auth/Login';
 import ProtectedRoute from './ProtectedRoute';
 import MainLayout from "../layouts/MainLayout.jsx";
 import { ROLES } from '../utils/constants'; 
+import MiPracticaEstudiante from '../pages/Estudiante/MiPracticaEstudiante';
 
 // Vistas temporales para verificar navegación
 const Dashboard = () => <div><h2>Panel Principal (Dashboard)</h2></div>;
@@ -22,9 +23,9 @@ const AppRouter = () => {
       <Route element={<ProtectedRoute allowedRoles={[ROLES.ESTUDIANTE]} />}>
         <Route element={<MainLayout />}>
           <Route path="/estudiante/dashboard" element={<Dashboard />} />
-          <Route path="/estudiante/vinculacion" element={<Vinculacion />} />
           <Route path="/estudiante/bitacora" element={<Bitacora />} />
           <Route path="/estudiante/documentos" element={<Documentos />} />
+          <Route path="/estudiante/vinculacion" element={<MiPracticaEstudiante />} />
         </Route>
       </Route>
 
