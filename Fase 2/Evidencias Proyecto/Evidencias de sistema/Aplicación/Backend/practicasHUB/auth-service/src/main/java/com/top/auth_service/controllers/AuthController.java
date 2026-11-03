@@ -30,7 +30,7 @@ public class AuthController {
         try {
             User savedUser = userService.RegisterUser(newUser);
 
-            String token = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole());
+            String token = jwtUtil.generateToken(savedUser.getId(), savedUser.getEmail(), savedUser.getRole());
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje", "User registered successfullyS");
             response.put("token", token);
@@ -47,7 +47,7 @@ public class AuthController {
     public ResponseEntity<?> LoginUser(@RequestBody LoginRequest loginRequest) {
         try{
             User userAuth = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
-            String token = jwtUtil.generateToken(userAuth.getEmail(), userAuth.getRole());
+            String token = jwtUtil.generateToken(userAuth.getId(), userAuth.getEmail(), userAuth.getRole());
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje", "User logged in successfully");
             response.put("token", token);

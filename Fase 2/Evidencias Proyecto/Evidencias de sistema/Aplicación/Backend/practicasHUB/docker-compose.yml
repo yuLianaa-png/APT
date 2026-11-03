@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # bd auth-service
   auth-db:
@@ -13,8 +11,6 @@ services:
       - "5432:5432"
     volumes:
       - auth_postgres_data:/var/lib/postgresql/data
-    networks:
-      - practicahub-network
 
   # bd nucleo practice
   practice-db:
@@ -26,6 +22,8 @@ services:
       POSTGRES_DB: practice_db
     ports:
       - "5433:5432"
+    volumes:
+      - practice_postgres_data:/var/lib/postgresql/data
 
   # MICROSERVICIOS
   # microservicio de autenticacion
@@ -33,7 +31,7 @@ services:
     build: ./auth-service
     container_name: practicahub-auth
     ports:
-      - "8081:8080"
+      - "8081:8081"
     depends_on:
       - auth-db
     environment:
@@ -41,23 +39,36 @@ services:
       SPRING_DATASOURCE_USERNAME: ${AUTH_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-    networks:
-      - practicahub-network
+      JWT_SECRET: ${JWT_SECRET}
 
   # microservico principal practica
   practice-service:
     build:
-      context: ./practica-service
+      context: ./practice-service
       dockerfile: Dockerfile
     container_name: practicahub-practice
     ports:
       - "8082:8082"
     depends_on:
-      - practica-db-ph
+      - practice-db
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://practice-db:5432/practice_db
       SPRING_DATASOURCE_USERNAME: ${PRACTICE_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${PRACTICE_DB_PASSWORD}
+
+  #apigateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: practicahub-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - practice-service
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
 
 
 # REDES Y VOLÚMENES
@@ -67,4 +78,4 @@ networks:
 
 volumes:
   auth_postgres_data:
-  practica_postgres_data:
+  practice_postgres_data:

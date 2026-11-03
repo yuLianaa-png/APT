@@ -5,28 +5,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a4edd532-e97f-4ecc-87ed-77ac68bfd501" name="Changes" comment="fix: arreglo en funcionamiento del sistema">
-      <change afterPath="$PROJECT_DIR$/practice-service/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/DTO/LoginRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/DTO/LoginRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/controllers/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/controllers/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/models/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/models/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/repositories/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/repositories/UserRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/security/JwtUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/security/JwtUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/security/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/services/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/services/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/controllers/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/controllers/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/models/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/models/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/security/JwtUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/java/com/top/auth_service/security/JwtUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/auth-service/src/main/resources/application.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practica-service/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/.gitattributes" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practica-service/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practica-service/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practica-service/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practica-service/mvnw.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/mvnw.cmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practica-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practica-service/src/main/java/com/top/practica_service/PracticaServiceApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/PracticeServiceApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practica-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/practica-service/src/test/java/com/top/practica_service/PracticaServiceApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/test/java/com/top/practica_service/PracticaServiceApplicationTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/controllers/PracticeGroupController.java" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/controllers/PracticeGroupController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/repositories/PracticeGroupRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/src/main/java/com/top/practice_service/repositories/PracticeGroupRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/practice-service/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/practice-service/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/report-service/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/report-service/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/report-service/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/report-service/mvnw" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/report-service/mvnw.cmd" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/report-service/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/report-service/src/main/java/com/top/report_service/ReportServiceApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/report-service/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/report-service/src/test/java/com/top/report_service/ReportServiceApplicationTests.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,61 +66,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0000000000000775" />
-      <entry key="S2" value="1.0005276979502145" />
-      <entry key="S5" value="1.0488600791576457" />
-      <entry key="S10" value="1.2211048538193272" />
-      <entry key="S30" value="1.797890384153002" />
-      <entry key="S60" value="3.2570283548421273" />
-      <entry key="M2" value="6.362630964903141" />
-      <entry key="M5" value="12.966170644501062" />
-      <entry key="M10" value="21.077759757662548" />
-      <entry key="M15" value="28.616984845862696" />
-      <entry key="M30" value="49.29121358278256" />
-      <entry key="H1" value="86.80907491763566" />
-      <entry key="H2" value="161.6629200987894" />
-      <entry key="H4" value="268.6136864289708" />
-      <entry key="D1" value="463.77655518547664" />
-      <entry key="W1" value="514.8128538407116" />
+      <entry key="MS100" value="1.0000000000129308" />
+      <entry key="MS500" value="1.0115865560997874" />
+      <entry key="S2" value="1.745354777893439" />
+      <entry key="S5" value="3.384821357321421" />
+      <entry key="S10" value="5.185971332274629" />
+      <entry key="S30" value="9.717849380650597" />
+      <entry key="S60" value="14.602979980182507" />
+      <entry key="M2" value="22.93963047047949" />
+      <entry key="M5" value="37.85432106642941" />
+      <entry key="M10" value="48.439493046285804" />
+      <entry key="M15" value="54.003066854579814" />
+      <entry key="M30" value="63.656290494427125" />
+      <entry key="H1" value="80.66467231607014" />
+      <entry key="H2" value="124.02627377659368" />
+      <entry key="H4" value="202.05632714453753" />
+      <entry key="D1" value="582.863444813958" />
+      <entry key="W1" value="995.9256031591618" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="4.229117256540378E-301" />
-      <entry key="S2" value="8.064536719157345E-76" />
-      <entry key="S5" value="9.333747878792731E-31" />
-      <entry key="S10" value="1.084080227141582E-15" />
-      <entry key="S30" value="1.6671771704617628E-5" />
-      <entry key="S60" value="0.008307661689003902" />
-      <entry key="M2" value="0.22356698352514345" />
-      <entry key="M5" value="1.758490239033546" />
-      <entry key="M10" value="3.791034652269471" />
-      <entry key="M15" value="5.155584376273515" />
-      <entry key="M30" value="7.655378551769805" />
-      <entry key="H1" value="12.04955480720591" />
-      <entry key="H2" value="22.774038263327615" />
-      <entry key="H4" value="38.52849070755164" />
-      <entry key="D1" value="66.54234863915251" />
-      <entry key="W1" value="73.71475983340491" />
+      <entry key="MS500" value="1.3979629906845268E-65" />
+      <entry key="S2" value="6.11468259822119E-17" />
+      <entry key="S5" value="3.27001366414729E-7" />
+      <entry key="S10" value="5.718403330696136E-4" />
+      <entry key="S30" value="0.08309250639898486" />
+      <entry key="S60" value="0.3043938491593261" />
+      <entry key="M2" value="0.75737791734566" />
+      <entry key="M5" value="1.835320891610255" />
+      <entry key="M10" value="2.6634434055621963" />
+      <entry key="M15" value="3.0538095644428154" />
+      <entry key="M30" value="3.7639169322771564" />
+      <entry key="H1" value="5.316658466339568" />
+      <entry key="H2" value="9.674874332450354" />
+      <entry key="H4" value="18.10438689417807" />
+      <entry key="D1" value="68.0968133828413" />
+      <entry key="W1" value="126.70342118534558" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.118502568466071E-6" />
-      <entry key="MS500" value="0.06452490846777814" />
-      <entry key="S2" value="0.5045257580862212" />
-      <entry key="S5" value="0.8090101064609302" />
-      <entry key="S10" value="1.0927534436955149" />
-      <entry key="S30" value="1.7529596905308362" />
-      <entry key="S60" value="3.242143811606805" />
-      <entry key="M2" value="6.570399144165724" />
-      <entry key="M5" value="14.705934311057941" />
-      <entry key="M10" value="24.848949104003264" />
-      <entry key="M15" value="33.75337475379994" />
-      <entry key="M30" value="56.93011816785823" />
-      <entry key="H1" value="98.84364335896106" />
-      <entry key="H2" value="184.4210283225653" />
-      <entry key="H4" value="307.12776332628516" />
-      <entry key="D1" value="530.3145215976476" />
-      <entry key="W1" value="588.5269138918674" />
+      <entry key="MS100" value="3.669607205301799E-8" />
+      <entry key="MS500" value="0.03822737874075567" />
+      <entry key="S2" value="0.9308386813457377" />
+      <entry key="S5" value="2.693393127716473" />
+      <entry key="S10" value="4.642245532646215" />
+      <entry key="S30" value="9.393368263319575" />
+      <entry key="S60" value="14.534081082821235" />
+      <entry key="M2" value="23.3786488773805" />
+      <entry key="M5" value="39.48110715111872" />
+      <entry key="M10" value="50.97307107850201" />
+      <entry key="M15" value="56.9622683193887" />
+      <entry key="M30" value="67.36667565230293" />
+      <entry key="H1" value="85.94929924964677" />
+      <entry key="H2" value="133.67762407309726" />
+      <entry key="H4" value="220.1419310343161" />
+      <entry key="D1" value="650.9522447264445" />
+      <entry key="W1" value="1122.627211559217" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
@@ -136,29 +138,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/system-core",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.jshint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.jshint": "",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "to.speed.mode.migration.done": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/system-core&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/EQUIPO/Desktop/APT/Fase 2/Evidencias Proyecto/Evidencias de sistema/Aplicación/Backend/practicasHUB/api-gateway&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\EQUIPO\Desktop\APT\Fase 2\Evidencias Proyecto\Evidencias de sistema\Aplicación\Backend\practicasHUB\api-gateway" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\EQUIPO\Desktop\APT\Fase 2\Evidencias Proyecto\Evidencias de sistema\Aplicación\Backend\practicasHUB\practice-service" />
       <recent name="C:\Users\EQUIPO\Desktop\APT\Fase 2\Evidencias Proyecto\Evidencias de sistema\Aplicación\Backend\practicasHUB\practice-service\src\main\resources" />

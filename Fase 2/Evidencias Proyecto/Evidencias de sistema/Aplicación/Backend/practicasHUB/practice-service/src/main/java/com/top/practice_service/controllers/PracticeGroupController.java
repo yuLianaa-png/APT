@@ -2,29 +2,43 @@ package com.top.practice_service.controllers;
 
 import com.top.practice_service.models.PracticeGroup;
 import com.top.practice_service.repositories.PracticeGroupRepository;
+import com.top.practice_service.services.PracticeGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/groups")
+@RequestMapping("/api/groups")
 public class PracticeGroupController {
+
     @Autowired
-    private PracticeGroupRepository practiceGroupRepository;
+    private PracticeGroupService practiceGroupService;
 
     @PostMapping("/create")
-    public ResponseEntity<PracticeGroup> createGroup(@RequestBody PracticeGroup group) {
-        if(group.getGroupCode() == null || group.getGroupCode().isEmpty()){
-            String generatedCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-            group.setGroupCode(generatedCode);
+    public ResponseEntity<?> createGroup(@RequestBody PracticeGroup group,
+                                         @RequestHeader("X-User-Id") Long userId,
+                                         @RequestHeader("X-User-Role") String role) {
+
+        if (role == null || !role.equalsIgnoreCase("PROFESOR")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ERROR: Solo los profesores pueden crear grupos.");
         }
 
-        PracticeGroup savedGroup = practiceGroupRepository.save(group);
+        PracticeGroup savedGroup = practiceGroupService.createGroup(group, userId);
         return ResponseEntity.ok(savedGroup);
+    }
+
+    @GetMapping("/my-groups")
+    public ResponseEntity<?> getMyGroups(@RequestHeader("X-User-Id") Long professorId,
+                                         @RequestHeader("X-User-Role") String role) {
+
+        if (role == null || (!role.equalsIgnoreCase("PROFESOR"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ERROR: Solo los profesores pueden ver sus grupos.");
+        }
+
+        return ResponseEntity.ok(practiceGroupService.getGroupsByProfessor(professorId));
     }
 }
