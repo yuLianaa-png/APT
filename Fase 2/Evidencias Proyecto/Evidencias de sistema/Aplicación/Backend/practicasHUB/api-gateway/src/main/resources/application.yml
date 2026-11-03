@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # Rutas de Autenticación y Usuarios
+        - id: auth-service
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/api/auth/**, /api/users/**
+
+        # Rutas de Prácticas
+        - id: practice-service
+          uri: http://practice-service:8082
+          predicates:
+            - Path=/api/groups/**, /api/enrollments/**, /api/logs/**
+
+jwt:
+  secret: ${JWT_SECRET}

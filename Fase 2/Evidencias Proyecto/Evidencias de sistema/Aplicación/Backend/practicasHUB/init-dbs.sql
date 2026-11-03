@@ -1,0 +1,3 @@
+CREATE DATABASE auth_db;
+CREATE DATABASE practica_db;
+CREATE DATABASE document_db;
