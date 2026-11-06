@@ -7,7 +7,6 @@ import { ROLES } from '../../utils/constants';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [perfil, setPerfil] = useState(ROLES.ESTUDIANTE); // 'ESTUDIANTE' o 'SUPERVISOR'
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -28,15 +27,16 @@ const Login = () => {
       // Enviamos credenciales al backend
       const data = await authService.login(email, password);
       
-      // Guardar sesión en contexto
-      login(data.user, data.token);
-
-      // Redirigir según el rol retornado o seleccionado
-      const userRol = data.user?.rol || perfil;
+      // Redirigir según el rol retornado por el backend
+      const userRol = data.user?.rol;
       if (userRol === ROLES.ESTUDIANTE) {
+        login(data.user, data.token);
         navigate('/estudiante/dashboard');
-      } else {
+      } else if (userRol === ROLES.SUPERVISOR) {
+        login(data.user, data.token);
         navigate('/docente/dashboard');
+      } else {
+        setError('El usuario autenticado no tiene un rol válido.');
       }
     } catch (err) {
       setError(
@@ -48,7 +48,7 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div className="login-container" style={styles.container}>
       {/* Panel Izquierdo - Presentación */}
       <div style={styles.leftPanel}>
         <div style={styles.brandContainer}>
@@ -89,6 +89,7 @@ const Login = () => {
                 placeholder="usuario@institucion.cl"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="login-input"
                 style={styles.input}
                 disabled={loading}
               />
@@ -101,36 +102,10 @@ const Login = () => {
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="login-input"
                 style={styles.input}
                 disabled={loading}
               />
-            </div>
-
-            {/* Selector de Perfil */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Perfil</label>
-              <div style={styles.profileSelector}>
-                <button
-                  type="button"
-                  onClick={() => setPerfil(ROLES.ESTUDIANTE)}
-                  style={{
-                    ...styles.profileButton,
-                    ...(perfil === ROLES.ESTUDIANTE ? styles.profileActive : {}),
-                  }}
-                >
-                  Estudiante
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPerfil(ROLES.SUPERVISOR)}
-                  style={{
-                    ...styles.profileButton,
-                    ...(perfil === ROLES.SUPERVISOR ? styles.profileActive : {}),
-                  }}
-                >
-                  Docente
-                </button>
-              </div>
             </div>
 
             <button type="submit" style={styles.submitButton} disabled={loading}>
@@ -151,7 +126,9 @@ const styles = {
   container: {
     display: 'flex',
     minHeight: '100vh',
-    width: '100vw',
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
     fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif",
   },
 
@@ -273,6 +250,8 @@ const styles = {
     border: '1px solid #e2e8f0',
     fontSize: '0.95rem',
     color: '#2d3748',
+    backgroundColor: '#ffffff',
+    colorScheme: 'light',
     outline: 'none',
     boxSizing: 'border-box',
     transition: 'border-color 0.2s',

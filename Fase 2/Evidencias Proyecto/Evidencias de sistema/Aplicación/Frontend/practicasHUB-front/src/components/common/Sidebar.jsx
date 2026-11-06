@@ -5,6 +5,7 @@ import { ROLES } from '../../utils/constants';
 const Sidebar = () => {
   const { user } = useAuth();
   const isEstudiante = user?.rol === ROLES.ESTUDIANTE;
+  const isDemo = user?.isDemo;
 
   // Rutas del menú para el Estudiante
   const estudianteLinks = [
@@ -23,7 +24,11 @@ const Sidebar = () => {
     { to: '/docente/reportes', label: 'Reportes y PDF' },
   ];
 
-  const links = isEstudiante ? estudianteLinks : docenteLinks;
+  const links = isDemo
+    ? [...estudianteLinks, ...docenteLinks]
+    : isEstudiante
+      ? estudianteLinks
+      : docenteLinks;
 
   return (
     <aside style={styles.sidebar}>
