@@ -7,10 +7,10 @@ import MiPracticaEstudiante from '../pages/Vinculacion/MiPracticaEstudiante';
 import GenerarCodigoDocente from '../pages/Vinculacion/GenerarCodigoDocente.jsx';
 import EstudianteDashboard from '../pages/Dashboard/EstudianteDashboard.jsx';
 import NuevaActividadEstudiante from '../pages/Actividades/NuevaActividadEstudiante.jsx';
+import BitacoraEstudiante from '../pages/Actividades/BitacoraEstudiante.jsx';
 
 // Vistas temporales para verificar navegación
 const Dashboard = () => <div><h2>Panel Principal (Dashboard)</h2></div>;
-const Bitacora = () => <div><h2>Bitácora de Actividades</h2></div>;
 const Revisiones = () => <div><h2>Revisión de Actividades</h2></div>;
 const Documentos = () => <div><h2>Gestión Documental</h2></div>;
 const Reportes = () => <div><h2>Generación de Reportes</h2></div>;
@@ -25,7 +25,7 @@ const AppRouter = () => {
       <Route element={<ProtectedRoute allowedRoles={[ROLES.ESTUDIANTE]} />}>
         <Route element={<MainLayout />}>
           <Route path="/estudiante/dashboard" element={<EstudianteDashboard />} />
-          <Route path="/estudiante/bitacora" element={<Bitacora />} />
+          <Route path="/estudiante/bitacora" element={<BitacoraEstudiante />} />
           <Route path="/estudiante/bitacora/nuevo" element={<NuevaActividadEstudiante />} />
           <Route path="/estudiante/documentos" element={<Documentos />} />
           <Route path="/estudiante/vinculacion" element={<MiPracticaEstudiante />} />

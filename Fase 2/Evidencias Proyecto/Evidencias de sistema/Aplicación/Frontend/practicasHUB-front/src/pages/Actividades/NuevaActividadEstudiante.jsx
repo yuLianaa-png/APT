@@ -77,11 +77,19 @@ const NuevaActividadEstudiante = () => {
     }
 
     const registro = {
+      id: Date.now(),
       ...form,
       horas: totalMinutes / 60,
       evidencia: evidencia?.name || null,
       estado: 'PENDIENTE',
     };
+    const registrosGuardados = JSON.parse(
+      localStorage.getItem('practicahub_actividades') || '[]',
+    );
+    localStorage.setItem(
+      'practicahub_actividades',
+      JSON.stringify([registro, ...registrosGuardados]),
+    );
     localStorage.setItem('practicahub_ultima_actividad', JSON.stringify(registro));
     setSaved(true);
     setError('');
