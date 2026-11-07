@@ -1,13 +1,7 @@
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const summaryCards = [
-  { label: 'Horas realizadas', value: '152 h', detail: 'de 360 h configuradas' },
-  { label: 'Horas restantes', value: '208 h', detail: 'avance total 42,2%' },
-  { label: 'Registros pendientes', value: '3', detail: 'esperando revisión' },
-  { label: 'Documentos', value: '2', detail: 'requieren entrega' },
-];
-
-const activityRows = [
+const demoActivityRows = [
   { date: '18/09/2026', activity: 'Pruebas funcionales módulo usuarios', hours: '8 h', status: 'Aprobado' },
   { date: '19/09/2026', activity: 'Registro de incidencias', hours: '7,5 h', status: 'Pendiente' },
   { date: '20/09/2026', activity: 'Actualización documentación', hours: '6 h', status: 'Observado' },
@@ -20,6 +14,34 @@ const documents = [
 
 const EstudianteDashboard = () => {
   const navigate = useNavigate();
+  const [savedActivities] = useState(() => (
+    JSON.parse(localStorage.getItem('practicahub_actividades') || '[]')
+  ));
+
+  const activityRows = useMemo(() => (
+    savedActivities.length
+      ? savedActivities.map((activity) => ({
+        date: formatDate(activity.fecha),
+        activity: activity.actividad,
+        hours: formatHours(activity.horas),
+        status: capitalizeStatus(activity.estado),
+      }))
+      : demoActivityRows
+  ), [savedActivities]);
+
+  const recordedHours = savedActivities.length
+    ? savedActivities.reduce((total, activity) => total + Number(activity.horas || 0), 0)
+    : 152;
+  const pendingActivities = savedActivities.length
+    ? savedActivities.filter((activity) => activity.estado === 'PENDIENTE').length
+    : 3;
+  const progress = Math.min((recordedHours / 360) * 100, 100);
+  const summaryCards = [
+    { label: 'Horas realizadas', value: `${formatHours(recordedHours)} h`, detail: 'de 360 h configuradas' },
+    { label: 'Horas restantes', value: `${formatHours(Math.max(360 - recordedHours, 0))} h`, detail: `avance total ${progress.toFixed(1).replace('.', ',')}%` },
+    { label: 'Registros pendientes', value: pendingActivities, detail: 'esperando revisión' },
+    { label: 'Documentos', value: '2', detail: 'requieren entrega' },
+  ];
 
   return (
     <div style={styles.page}>
@@ -51,9 +73,9 @@ const EstudianteDashboard = () => {
             <span style={styles.activeBadge}>Práctica activa</span>
           </div>
 
-          <div style={styles.progressSummary}>152 de 360 horas</div>
+          <div style={styles.progressSummary}>{formatHours(recordedHours)} de 360 horas</div>
           <div style={styles.progressTrack}>
-            <div style={styles.progressBar} />
+            <div style={{ ...styles.progressBar, width: `${progress}%` }} />
           </div>
 
           <div style={styles.divider} />
@@ -188,3 +210,19 @@ const styles = {
 };
 
 export default EstudianteDashboard;
+
+const formatDate = (date) => {
+  if (!date) return '-';
+  if (date.includes('/')) return date;
+  const [year, month, day] = date.split('-');
+  return `${day}/${month}/${year}`;
+};
+
+const formatHours = (hours) => Number(hours).toLocaleString('es-CL', {
+  minimumFractionDigits: Number(hours) % 1 ? 1 : 0,
+  maximumFractionDigits: 2,
+});
+
+const capitalizeStatus = (status) => (
+  status.charAt(0) + status.slice(1).toLowerCase()
+);
