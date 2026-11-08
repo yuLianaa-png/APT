@@ -9,10 +9,11 @@ import EstudianteDashboard from '../pages/Dashboard/EstudianteDashboard.jsx';
 import NuevaActividadEstudiante from '../pages/Actividades/NuevaActividadEstudiante.jsx';
 import BitacoraEstudiante from '../pages/Actividades/BitacoraEstudiante.jsx';
 import RegistrarActividadDocente from '../pages/Actividades/RegistrarActividadDocente.jsx';
+import RevisarActividadDocente from '../pages/Revision/RevisarActividadDocente.jsx';
+import CorregirActividadEstudiante from '../pages/Revision/CorregirActividadEstudiante.jsx';
 
 // Vistas temporales para verificar navegación
 const Dashboard = () => <div><h2>Panel Principal (Dashboard)</h2></div>;
-const Revisiones = () => <div><h2>Revisión de Actividades</h2></div>;
 const Documentos = () => <div><h2>Gestión Documental</h2></div>;
 const Reportes = () => <div><h2>Generación de Reportes</h2></div>;
 
@@ -28,6 +29,7 @@ const AppRouter = () => {
           <Route path="/estudiante/dashboard" element={<EstudianteDashboard />} />
           <Route path="/estudiante/bitacora" element={<BitacoraEstudiante />} />
           <Route path="/estudiante/bitacora/nuevo" element={<NuevaActividadEstudiante />} />
+          <Route path="/estudiante/bitacora/corregir" element={<CorregirActividadEstudiante />} />
           <Route path="/estudiante/documentos" element={<Documentos />} />
           <Route path="/estudiante/vinculacion" element={<MiPracticaEstudiante />} />
         </Route>
@@ -39,7 +41,7 @@ const AppRouter = () => {
           <Route path="/docente/dashboard" element={<Dashboard />} />
           <Route path="/docente/vinculacion" element={<GenerarCodigoDocente />} />
           <Route path="/docente/estudiantes/1/actividad/nueva" element={<RegistrarActividadDocente />} />
-          <Route path="/docente/revisiones" element={<Revisiones />} />
+          <Route path="/docente/revisiones" element={<RevisarActividadDocente />} />
           <Route path="/docente/documentos" element={<Documentos />} />
           <Route path="/docente/reportes" element={<Reportes />} />
         </Route>

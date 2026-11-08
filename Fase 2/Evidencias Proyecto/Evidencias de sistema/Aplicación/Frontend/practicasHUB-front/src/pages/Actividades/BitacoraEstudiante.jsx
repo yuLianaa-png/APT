@@ -101,6 +101,15 @@ const BitacoraEstudiante = () => {
                       <span style={{ ...styles.statusBadge, ...statusStyles[activity.estado] }}>
                         {activity.estado}
                       </span>
+                      {activity.estado === 'OBSERVADO' && (
+                        <button
+                          type="button"
+                          style={styles.correctButton}
+                          onClick={() => navigate('/estudiante/bitacora/corregir')}
+                        >
+                          Corregir
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -175,6 +184,7 @@ const styles = {
   tableCell: { padding: '11px 8px', color: '#52637a', whiteSpace: 'nowrap' },
   activityCell: { color: '#2f4057', fontWeight: 600, whiteSpace: 'normal', minWidth: '260px' },
   statusBadge: { display: 'inline-block', borderRadius: '12px', padding: '4px 8px', fontSize: '0.54rem', fontWeight: 700 },
+  correctButton: { display: 'block', marginTop: '5px', border: 0, background: 'transparent', color: '#2868bd', fontSize: '0.58rem', fontWeight: 700, cursor: 'pointer', padding: 0 },
   emptyState: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '45px 20px', color: '#7d8da3', fontSize: '0.7rem' },
   secondaryButton: { border: '1px solid #d5e0ec', borderRadius: '6px', padding: '7px 11px', backgroundColor: '#fff', color: '#35465d', fontSize: '0.62rem', fontWeight: 700, cursor: 'pointer' },
   footerRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', color: '#8190a5', fontSize: '0.62rem' },
