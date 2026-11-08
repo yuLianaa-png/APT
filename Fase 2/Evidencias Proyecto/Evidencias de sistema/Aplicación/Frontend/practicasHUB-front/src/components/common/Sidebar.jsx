@@ -18,6 +18,7 @@ const Sidebar = () => {
   // Rutas del menú para el Docente / Supervisor
   const docenteLinks = [
     { to: '/docente/dashboard', label: 'Inicio / Dashboard' },
+    { to: '/docente/estudiantes/1/actividad/nueva', label: 'Estudiantes' },
     { to: '/docente/vinculacion', label: 'Códigos de Vinculación' },
     { to: '/docente/revisiones', label: 'Revisar Bitácoras' },
     { to: '/docente/documentos', label: 'Gestión Documental' },

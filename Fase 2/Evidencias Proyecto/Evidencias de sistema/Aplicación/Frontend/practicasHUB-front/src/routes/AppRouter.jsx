@@ -8,6 +8,7 @@ import GenerarCodigoDocente from '../pages/Vinculacion/GenerarCodigoDocente.jsx'
 import EstudianteDashboard from '../pages/Dashboard/EstudianteDashboard.jsx';
 import NuevaActividadEstudiante from '../pages/Actividades/NuevaActividadEstudiante.jsx';
 import BitacoraEstudiante from '../pages/Actividades/BitacoraEstudiante.jsx';
+import RegistrarActividadDocente from '../pages/Actividades/RegistrarActividadDocente.jsx';
 
 // Vistas temporales para verificar navegación
 const Dashboard = () => <div><h2>Panel Principal (Dashboard)</h2></div>;
@@ -37,6 +38,7 @@ const AppRouter = () => {
         <Route element={<MainLayout />}>
           <Route path="/docente/dashboard" element={<Dashboard />} />
           <Route path="/docente/vinculacion" element={<GenerarCodigoDocente />} />
+          <Route path="/docente/estudiantes/1/actividad/nueva" element={<RegistrarActividadDocente />} />
           <Route path="/docente/revisiones" element={<Revisiones />} />
           <Route path="/docente/documentos" element={<Documentos />} />
           <Route path="/docente/reportes" element={<Reportes />} />

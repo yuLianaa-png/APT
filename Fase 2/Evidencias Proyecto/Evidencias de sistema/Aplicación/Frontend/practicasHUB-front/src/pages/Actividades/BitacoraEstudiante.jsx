@@ -19,7 +19,9 @@ const BitacoraEstudiante = () => {
   const [filter, setFilter] = useState('TODOS');
   const [activities, setActivities] = useState(() => {
     const saved = JSON.parse(localStorage.getItem('practicahub_actividades') || '[]');
-    return saved.length ? saved : demoActivities;
+    const docente = JSON.parse(localStorage.getItem('practicahub_actividades_docente') || '[]');
+    const combined = [...saved, ...docente];
+    return combined.length ? combined : demoActivities;
   });
 
   const filteredActivities = useMemo(
@@ -83,6 +85,7 @@ const BitacoraEstudiante = () => {
                   <th style={styles.tableHeader}>Actividad</th>
                   <th style={styles.tableHeader}>Horas</th>
                   <th style={styles.tableHeader}>Evidencia</th>
+                  <th style={styles.tableHeader}>Autor</th>
                   <th style={styles.tableHeader}>Estado</th>
                 </tr>
               </thead>
@@ -93,6 +96,7 @@ const BitacoraEstudiante = () => {
                     <td style={{ ...styles.tableCell, ...styles.activityCell }}>{activity.actividad}</td>
                     <td style={styles.tableCell}>{formatHours(activity.horas)} h</td>
                     <td style={styles.tableCell}>{activity.evidencia || 'Sin archivo'}</td>
+                    <td style={styles.tableCell}>{activity.autor === 'DOCENTE' ? 'Docente' : 'Estudiante'}</td>
                     <td style={styles.tableCell}>
                       <span style={{ ...styles.statusBadge, ...statusStyles[activity.estado] }}>
                         {activity.estado}
