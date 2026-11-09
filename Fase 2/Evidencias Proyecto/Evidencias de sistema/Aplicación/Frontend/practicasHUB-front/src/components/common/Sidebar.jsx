@@ -5,13 +5,12 @@ import { ROLES } from '../../utils/constants';
 const Sidebar = () => {
   const { user } = useAuth();
   const isEstudiante = user?.rol === ROLES.ESTUDIANTE;
-  const isDemo = user?.isDemo;
 
   // Rutas del menú para el Estudiante
   const estudianteLinks = [
     { to: '/estudiante/dashboard', label: 'Inicio / Dashboard' },
     { to: '/estudiante/vinculacion', label: 'Mi Práctica' },
-    { to: '/estudiante/bitacora', label: 'Bitácora de Horas' },
+    { to: '/estudiante/bitacora', label: 'Bitácora' },
     { to: '/estudiante/documentos', label: 'Documentos' },
   ];
 
@@ -25,11 +24,7 @@ const Sidebar = () => {
     { to: '/docente/reportes', label: 'Reportes y PDF' },
   ];
 
-  const links = isDemo
-    ? [...estudianteLinks, ...docenteLinks]
-    : isEstudiante
-      ? estudianteLinks
-      : docenteLinks;
+  const links = isEstudiante ? estudianteLinks : docenteLinks;
 
   return (
     <aside style={styles.sidebar}>
