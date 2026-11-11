@@ -1,17 +1,22 @@
 package com.top.practice_service.controllers;
 
 import com.top.practice_service.models.PracticeEnrollment;
+import com.top.practice_service.repositories.PracticeEnrollmentRepository;
 import com.top.practice_service.services.PracticeEnrollmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/enrollments")
 public class PracticeEnrollmentController {
     @Autowired
     private PracticeEnrollmentService enrollmentService;
+    @Autowired
+    private PracticeEnrollmentRepository enrollmentRepository;
 
     @PostMapping("/join/{groupCode}")
     public ResponseEntity<?> enrollInGroup(@PathVariable String groupCode,
@@ -67,5 +72,14 @@ public class PracticeEnrollmentController {
         }
 
         return ResponseEntity.ok(enrollmentService.getStudentEnrollments(studentId));
+    }
+
+    @GetMapping("/group/{groupId}/student-ids")
+    public ResponseEntity<List<Long>> getStudentIdsByGroup(@PathVariable Long groupId) {
+        List<Long> studentIds = enrollmentRepository.findByPracticeGroupId(groupId)
+                .stream()
+                .map(PracticeEnrollment::getStudentId)
+                .toList();
+        return ResponseEntity.ok(studentIds);
     }
 }

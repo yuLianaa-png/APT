@@ -25,6 +25,32 @@ services:
     volumes:
       - practice_postgres_data:/var/lib/postgresql/data
 
+  #db seccion documentos
+  document-db:
+    image: postgres:15
+    container_name: practicahub-document-db
+    environment:
+      POSTGRES_USER: ${DOCUMENT_DB_USER}
+      POSTGRES_PASSWORD: ${DOCUMENT_DB_PASSWORD}
+      POSTGRES_DB: document_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - document_postgres_data:/var/lib/postgresql/data
+
+  #db notificaciones
+  notification-db:
+    image: postgres:15-alpine
+    container_name: practicahub-notification-db
+    environment:
+      POSTGRES_USER: ${NOTIFICATION_DB_USER}
+      POSTGRES_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+      POSTGRES_DB: notification_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+
   # MICROSERVICIOS
   # microservicio de autenticacion
   auth-service:
@@ -70,6 +96,43 @@ services:
     environment:
       - JWT_SECRET=${JWT_SECRET}
 
+  #microservicio de documentos
+  document-service:
+    build:
+      context: ./document-service
+    container_name: practicahub-document
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://document-db:5432/document_db
+      - SPRING_DATASOURCE_USERNAME=${DOCUMENT_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DOCUMENT_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SUPABASE_BUCKET=${SUPABASE_BUCKET}
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - document-db
+
+  #microservicio notificaciones
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: practicahub-notification
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://notification-db:5432/notification_db
+      - SPRING_DATASOURCE_USERNAME=${NOTIFICATION_DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${NOTIFICATION_DB_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SERVER_PORT=8084
+    depends_on:
+      - notification-db
+
 
 # REDES Y VOLÚMENES
 networks:
@@ -79,3 +142,5 @@ networks:
 volumes:
   auth_postgres_data:
   practice_postgres_data:
+  document_postgres_data:
+  notification_postgres_data:
