@@ -36,31 +36,6 @@ public class PracticeEnrollmentController {
         }
     }
 
-    @GetMapping("/group/{groupId}/pending")
-    public ResponseEntity<?> getPendingStudents(@PathVariable Long groupId, @RequestHeader("X-User-Id") Long professorId, @RequestHeader("X-User-Role")  String role) {
-        if (role == null || (!role.equalsIgnoreCase("PROFESOR"))){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ERROR: Solo profesores pueden revisar postulaciones");
-        }
-
-        try{
-            return ResponseEntity.ok(enrollmentService.getPendingEnrollment(groupId, professorId));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @PutMapping("/{enrollmentId}/status")
-    public ResponseEntity<?> changeStatus(@PathVariable Long enrollmentId, @RequestParam String status, @RequestHeader("X-User-Id") Long professorId, @RequestHeader("X-User-Role")  String role) {
-        if (role == null || (!role.equalsIgnoreCase("PROFESOR"))){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ERROR: Solo profesores pueden aprobar postulaciones");
-        }
-
-        try{
-            return ResponseEntity.ok(enrollmentService.updateEnrollmentStatus(enrollmentId, status, professorId));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 
     @GetMapping("/my-enrollments")
     public ResponseEntity<?> getMyEnrollments(@RequestHeader("X-User-Id") Long studentId,
@@ -81,5 +56,15 @@ public class PracticeEnrollmentController {
                 .map(PracticeEnrollment::getStudentId)
                 .toList();
         return ResponseEntity.ok(studentIds);
+    }
+
+    @GetMapping("/{enrollmentId}/student-id")
+    public ResponseEntity<Long> getStudentIdByEnrollment(@PathVariable Long enrollmentId) {
+        try {
+            Long studentId = enrollmentService.getStudentIdByEnrollment(enrollmentId);
+            return ResponseEntity.ok(studentId);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 }

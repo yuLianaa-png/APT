@@ -40,4 +40,13 @@ public class DocumentSubmission {
 
     @Column(name = "submission_date")
     private LocalDateTime submissionDate = LocalDateTime.now();
+
+    @Column(name = "is_active")
+    private Boolean active = true;
+
+    @Column(name = "version")
+    private Integer version = 1;
+
+    @Column(length = 30)
+    private String status = "Entregado";
 }

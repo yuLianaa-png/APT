@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,16 +24,17 @@ public class PracticeLogService {
     @Autowired
     private PracticeGroupRepository groupRepository;
 
-    public PracticeLog registerHours(Long enrollmentId, PracticeLog request, Long studentId){
+    public PracticeLog registerHours(Long enrollmentId, PracticeLog request, Long studentId) {
         PracticeEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new RuntimeException("La inscripción no existe."));
 
         if (!enrollment.getStudentId().equals(studentId)) {
             throw new RuntimeException("ACCESO DENEGADO: Esta inscripción no te pertenece.");
         }
+        validateGroupIsActive(enrollmentId);
 
-        if (!"APROBADO".equalsIgnoreCase(enrollment.getStatus())) {
-            throw new RuntimeException("Solo puedes registrar horas en prácticas con estado APROBADO.");
+        if (logRepository.existsByIdEnrollmentAndLogDate(enrollmentId, request.getLogDate())) {
+            throw new RuntimeException("Ya existe una jornada registrada para esta fecha en esta práctica.");
         }
 
         if (request.getEndTime().isBefore(request.getStartTime())) {
@@ -41,15 +43,14 @@ public class PracticeLogService {
 
         Duration duration = Duration.between(request.getStartTime(), request.getEndTime());
         long totalMinutes = duration.toMinutes();
-
         int breakMins = request.getBreakMinutes() != null ? request.getBreakMinutes() : 0;
-        if (breakMins > totalMinutes) {
-            throw new RuntimeException("Los minutos de descanso no pueden superar el tiempo total trabajado.");
+
+        if (breakMins >= totalMinutes) {
+            throw new RuntimeException("Los minutos de descanso deben ser menores al tiempo total trabajado para generar horas efectivas.");
         }
 
         long validMinutes = totalMinutes - breakMins;
         double totalHours = Math.round((validMinutes / 60.0) * 100.0) / 100.0;
-
 
         PracticeLog newLog = new PracticeLog();
         newLog.setIdEnrollment(enrollmentId);
@@ -59,39 +60,8 @@ public class PracticeLogService {
         newLog.setBreakMinutes(breakMins);
         newLog.setTotalHours(totalHours);
         newLog.setActivitiesDescription(request.getActivitiesDescription());
-        newLog.setStatus("PENDIENTE");
 
         return logRepository.save(newLog);
-    }
-
-    public List<PracticeLog> getPendingLogs(Long enrollmentId, Long professorId) {
-        PracticeEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
-                .orElseThrow(() -> new RuntimeException("La inscripción no existe."));
-
-        groupRepository.findById(enrollment.getPracticeGroupId()).ifPresent(group -> {
-            if (!group.getIdProfessor().equals(professorId)) {
-                throw new RuntimeException("ACCESO DENEGADO: No eres el profesor de este grupo.");
-            }
-        });
-
-        return logRepository.findByIdEnrollmentAndStatus(enrollmentId, "PENDIENTE");
-    }
-
-    public PracticeLog updateLogStatus(Long logId, String newStatus, Long professorId) {
-        PracticeLog log = logRepository.findById(logId)
-                .orElseThrow(() -> new RuntimeException("Registro no encontrado."));
-
-        PracticeEnrollment enrollment = enrollmentRepository.findById(log.getIdEnrollment())
-                .orElseThrow(() -> new RuntimeException("Inscripción no encontrada."));
-
-        groupRepository.findById(enrollment.getPracticeGroupId()).ifPresent(group -> {
-            if (!group.getIdProfessor().equals(professorId)) {
-                throw new RuntimeException("ACCESO DENEGADO: No puedes evaluar horas de otros grupos.");
-            }
-        });
-
-        log.setStatus(newStatus.toUpperCase());
-        return logRepository.save(log);
     }
 
     public StudentDashboardDTO getStudentDashboard(Long enrollmentId, Long studentId) {
@@ -109,71 +79,117 @@ public class PracticeLogService {
 
         List<PracticeLog> allLogs = logRepository.findByIdEnrollment(enrollmentId);
 
-        double approved = allLogs.stream()
-                .filter(log -> "APROBADA".equalsIgnoreCase(log.getStatus()))
-                .mapToDouble(PracticeLog::getTotalHours)
-                .sum();
-
-        double pending = allLogs.stream()
-                .filter(log -> "PENDIENTE".equalsIgnoreCase(log.getStatus()))
-                .mapToDouble(PracticeLog::getTotalHours)
-                .sum();
-
-        double rejected = allLogs.stream()
-                .filter(log -> "RECHAZADA".equalsIgnoreCase(log.getStatus()))
+        double totalRegisteredHours = allLogs.stream()
                 .mapToDouble(PracticeLog::getTotalHours)
                 .sum();
 
         double percentage = 0.0;
         if (requiredHours > 0) {
-            percentage = Math.round((approved / requiredHours) * 10000.0) / 100.0;
+            percentage = Math.round((totalRegisteredHours / requiredHours) * 10000.0) / 100.0;
         }
 
-        return new StudentDashboardDTO(enrollmentId, approved, pending, rejected, requiredHours, percentage);
+        return new StudentDashboardDTO(
+                enrollmentId,
+                totalRegisteredHours,
+                requiredHours,
+                percentage
+        );
     }
 
-    public PracticeLog requestCorrection(Long logId, String reason){
-        PracticeLog log = logRepository.findById(logId).orElseThrow(() -> new RuntimeException("Jornada no encontrada"));
 
-        if(!"REGISTRADA".equalsIgnoreCase(log.getStatus())){
-            throw new RuntimeException("Solo se puede solicitar correción de jornadas REGISTRADAS ");
+    public PracticeLog editPracticeLog(Long logId, PracticeLog updatedData) {
+        PracticeLog log = logRepository.findById(logId)
+                .orElseThrow(() -> new IllegalArgumentException("Jornada no encontrada"));
+
+        validateGroupIsActive(log.getIdEnrollment());
+
+        boolean isWithinGracePeriod = LocalDateTime.now().isBefore(log.getCreatedAt().plusHours(24));
+        boolean isTeacherEnabled = "OBSERVADA".equalsIgnoreCase(log.getStatus());
+
+        if (!isWithinGracePeriod && !isTeacherEnabled) {
+            throw new IllegalStateException("Han pasado más de 24 horas. Debes solicitar una corrección al docente para editar esta jornada.");
         }
 
-        log.setRequestStatus("ENVIADA");
+        Duration duration = Duration.between(updatedData.getStartTime(), updatedData.getEndTime());
+        long totalMinutes = duration.toMinutes();
+        int breakMins = updatedData.getBreakMinutes() != null ? updatedData.getBreakMinutes() : 0;
+
+        if (breakMins >= totalMinutes) {
+            throw new RuntimeException("Los minutos de descanso invalidan el tiempo trabajado.");
+        }
+
+        long validMinutes = totalMinutes - breakMins;
+        double newTotalHours = Math.round((validMinutes / 60.0) * 100.0) / 100.0;
+
+        log.setStartTime(updatedData.getStartTime());
+        log.setEndTime(updatedData.getEndTime());
+        log.setBreakMinutes(breakMins);
+        log.setTotalHours(newTotalHours);
+        log.setActivitiesDescription(updatedData.getActivitiesDescription());
+
+        if (isTeacherEnabled) {
+            log.setCorrectionReason(null);
+            log.setTeacherObservation(null);
+            log.setStatus("REGISTRADA");
+            log.setRequestStatus("Completada");
+        }
+
+        return logRepository.save(log);
+    }
+
+    public PracticeLog requestCorrection(Long logId, String reason) {
+        PracticeLog log = logRepository.findById(logId)
+                .orElseThrow(() -> new RuntimeException("Jornada no encontrada"));
+
+        validateGroupIsActive(log.getIdEnrollment());
+
+        if (reason == null || reason.trim().isEmpty()) throw new IllegalArgumentException("Motivo obligatorio.");
+
         log.setCorrectionReason(reason);
+        log.setRequestStatus("Pendiente");
         return logRepository.save(log);
     }
 
-    public PracticeLog authorizeCorrection(Long logId){
-        PracticeLog log = logRepository.findById(logId).orElseThrow(() -> new RuntimeException("Jornada no encontrada"));
+    public PracticeLog enableCorrection(Long logId, String observation) {
+        PracticeLog log = logRepository.findById(logId)
+                .orElseThrow(() -> new RuntimeException("Jornada no encontrada"));
 
-        log.setStatus("OBSERVADA");
-        log.setRequestStatus("HABILITADA");
-        return logRepository.save(log);
-    }
+        validateGroupIsActive(log.getIdEnrollment());
 
-    public PracticeLog updateObservedLog(Long logId, PracticeLog updateData){
-        PracticeLog log = logRepository.findById(logId).orElseThrow(() -> new RuntimeException("Jornada no encontrada"));
-
-        if(!"OBSERVADA".equalsIgnoreCase(log.getStatus())){
-            throw new RuntimeException("Solo puedes modificar jornadas que han sido OBSERVADAS por el profesor");
+        if (observation == null || observation.trim().isEmpty()) {
+            throw new IllegalArgumentException("Debes ingresar una observación breve para habilitar la corrección.");
         }
 
-        log.setLogDate(updateData.getLogDate());
-        log.setStartTime(updateData.getStartTime());
-        log.setEndTime(updateData.getEndTime());
-        log.setActivitiesDescription(updateData.getActivitiesDescription());
-        log.setStatus("CORREGIDA");
-        log.setRequestStatus("ENTREGADA");
+        log.setTeacherObservation(observation);
+        log.setStatus("OBSERVADA");
+        log.setRequestStatus("Habilitada");
         return logRepository.save(log);
     }
 
-    public PracticeLog approveCorrection(Long logId){
-        PracticeLog log = logRepository.findById(logId).orElseThrow(() -> new RuntimeException("Jornada no encontrada"));
+    public PracticeLog rejectCorrection(Long logId, String comment) {
+        PracticeLog log = logRepository.findById(logId)
+                .orElseThrow(() -> new RuntimeException("Jornada no encontrada"));
 
-        log.setStatus("REGISTRADA");
-        log.setRequestStatus("SIN_SOLICITUD");
-        log.setCorrectionReason(null);
+        validateGroupIsActive(log.getIdEnrollment());
+
+        if (comment == null || comment.trim().isEmpty()) {
+            throw new IllegalArgumentException("Debes ingresar un comentario para rechazar.");
+        }
+
+        log.setTeacherObservation(comment);
+        log.setRequestStatus("Rechazada");
         return logRepository.save(log);
     }
+
+    private void validateGroupIsActive(Long enrollmentId) {
+        PracticeEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new RuntimeException("Inscripción no encontrada."));
+
+        com.top.practice_service.models.PracticeGroup group = groupRepository.findById(enrollment.getPracticeGroupId())
+                .orElseThrow(() -> new RuntimeException("Grupo no encontrado."));
+        if ("INACTIVO".equalsIgnoreCase(group.getStatus())) {
+            throw new IllegalStateException("ACCION DENEGADA: El grupo está Inactivo y se encuentra en modo de solo lectura.");
+        }
+    }
+
 }

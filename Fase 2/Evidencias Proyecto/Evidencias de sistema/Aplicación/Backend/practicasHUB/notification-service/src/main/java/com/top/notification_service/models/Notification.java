@@ -39,4 +39,8 @@ public class Notification {
 
     @Column(name = "action_url")
     private String actionUrl;
+
+    private Long groupId;
+    private String groupName;
+    private String groupCode;
 }

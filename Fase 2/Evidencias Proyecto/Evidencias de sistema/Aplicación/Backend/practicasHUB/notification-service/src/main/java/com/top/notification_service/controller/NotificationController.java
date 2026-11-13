@@ -17,17 +17,25 @@ public class NotificationController {
     @PostMapping("/send")
     public ResponseEntity<Notification> sendNotification(
             @RequestParam Long userId,
+            @RequestParam Long groupId,
+            @RequestParam String groupName,
+            @RequestParam String groupCode,
             @RequestParam String type,
             @RequestParam String title,
             @RequestParam String message,
             @RequestParam(required = false) String actionUrl) {
-        return ResponseEntity.ok(notificationService.createNotification(userId, type, title, message, actionUrl));
+        return ResponseEntity.ok(notificationService.createNotification(userId, groupId, groupName, groupCode, type, title, message, actionUrl));
     }
 
     //front pintar lista
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Notification>> getUserNotifications(@PathVariable Long userId) {
         return ResponseEntity.ok(notificationService.getUserNotifications(userId));
+    }
+
+    @GetMapping("/user/{userId}/group/{groupId}")
+    public ResponseEntity<List<Notification>> getGroupNotifications(@PathVariable Long userId, @PathVariable Long groupId) {
+        return ResponseEntity.ok(notificationService.getGroupNotifications(userId, groupId));
     }
 
     //front numero campanita
@@ -46,11 +54,14 @@ public class NotificationController {
     @PostMapping("/send-bulk")
     public ResponseEntity<?> sendBulkNotification(
             @RequestParam List<Long> userIds,
+            @RequestParam Long groupId,
+            @RequestParam String groupName,
+            @RequestParam String groupCode,
             @RequestParam String type,
             @RequestParam String title,
             @RequestParam String message,
             @RequestParam(required = false) String actionUrl) {
-        notificationService.createBulkNotifications(userIds, type, title, message, actionUrl);
+        notificationService.createBulkNotifications(userIds, groupId, groupName, groupCode, type, title, message, actionUrl);
         return ResponseEntity.ok().build();
     }
 }

@@ -5,6 +5,7 @@ import com.top.document_service.repositories.DocumentSubmissionRepository;
 import com.top.document_service.repositories.GroupDocumentRepository;
 import com.top.document_service.repositories.LogEvidenceRepository;
 import com.top.document_service.services.DocumentUploadService;
+import com.top.document_service.utils.FileValidatorUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,10 @@ public class DocumentController {
         }
 
         try {
+            FileValidatorUtil.validate(file);
             return ResponseEntity.ok(uploadService.uploadGroupDocument(file, groupId, description, requiresSubmission));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Error de validación: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir documento: " + e.getMessage());
         }
@@ -60,7 +64,10 @@ public class DocumentController {
         }
 
         try {
+            FileValidatorUtil.validate(file);
             return ResponseEntity.ok(uploadService.uploadSubmission(file, enrollmentId, groupDocumentId, comments));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Error de validación: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir entrega: " + e.getMessage());
         }
@@ -73,7 +80,7 @@ public class DocumentController {
 
     @GetMapping("/submission/{enrollmentId}")
     public ResponseEntity<?> getSubmissionsByStudent(@PathVariable Long enrollmentId) {
-        return ResponseEntity.ok(submissionRepo.findByEnrollmentId(enrollmentId));
+        return ResponseEntity.ok(submissionRepo.findByEnrollmentIdAndActiveTrue(enrollmentId));
     }
 
     @GetMapping("/evidence/{logId}")
@@ -93,9 +100,48 @@ public class DocumentController {
         }
 
         try {
+            FileValidatorUtil.validate(file);
             return ResponseEntity.ok(uploadService.uploadLogEvidence(file, logId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Error de validación: " + e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al subir evidencia: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/submission/{submissionId}/request-correction")
+    public ResponseEntity<?> requestSubmissionCorrection(
+            @PathVariable Long submissionId,
+            @RequestBody java.util.Map<String, String> payload,
+            @RequestHeader(value = "X-User-Role", defaultValue = "PROFESOR") String role) {
+
+        if (!"PROFESOR".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ACCESO DENEGADO.");
+        }
+        try {
+            String comment = payload.get("comment");
+            return ResponseEntity.ok(uploadService.requestSubmissionCorrection(submissionId, comment));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/group/{groupDocumentId}/replace")
+    public ResponseEntity<?> replaceGroupDocument(
+            @RequestParam("file") MultipartFile file,
+            @PathVariable Long groupDocumentId,
+            @RequestHeader(value = "X-User-Role", defaultValue = "PROFESOR") String role) {
+
+        if (!"PROFESOR".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ACCESO DENEGADO.");
+        }
+        try {
+            FileValidatorUtil.validate(file);
+            return ResponseEntity.ok(uploadService.replaceGroupDocument(file, groupDocumentId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Error de validación: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 }

@@ -11,9 +11,7 @@ import lombok.Setter;
 @Setter
 public class StudentDashboardDTO {
     private Long enrollmentId;
-    private Double totalApprovedHours;
-    private Double totalRejectedHours;
-    private Double totalPendingHours;
+    private double totalRegisteredHours;
     private int requiredHours;
     private double progressPercentage;
 }

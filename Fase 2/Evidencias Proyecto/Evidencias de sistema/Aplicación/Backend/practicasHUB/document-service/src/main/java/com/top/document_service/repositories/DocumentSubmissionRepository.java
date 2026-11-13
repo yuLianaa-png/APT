@@ -5,8 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DocumentSubmissionRepository extends JpaRepository<DocumentSubmission, Long> {
-    List<DocumentSubmission> findByEnrollmentId(Long enrollmentId);
+    List<DocumentSubmission> findByEnrollmentIdAndActiveTrue(Long enrollmentId);
+    Optional<DocumentSubmission> findByEnrollmentIdAndGroupDocumentIdAndActiveTrue(Long enrollmentId, Long groupDocumentId);
 }

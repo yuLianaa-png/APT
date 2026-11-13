@@ -41,6 +41,9 @@ public class GroupDocument {
     @Column(name = "published_date")
     private LocalDateTime publishedDate = LocalDateTime.now();
 
+    @Column(name = "version")
+    private Integer version = 1;
+
     @Column(name = "is_active")
     private Boolean active = true;
 }

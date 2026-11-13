@@ -31,17 +31,20 @@ public class PracticeLog {
     private Double totalHours;
     private String activitiesDescription;
 
+    @Column(name = "request_status", length = 30)
+    private String requestStatus = "Sin solicitud";
+
     @Column(name = "status", length = 30)
     private String status = "REGISTRADA";
-
-    @Column(name = "request_status", length = 30)
-    private String requestStatus = "SIN_SOLICITUD";
 
     @Column(name = "correction_reason", columnDefinition = "TEXT")
     private String correctionReason;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "teacher_observation", columnDefinition = "TEXT")
+    private String teacherObservation;
 
     @PrePersist
     protected void onCreate() {

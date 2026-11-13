@@ -22,45 +22,23 @@ public class PracticeEnrollmentService {
 
     public PracticeEnrollment enrollStudent(String groupCode, Long studentId) {
 
-        Optional<PracticeGroup> groupOpt = groupRepository.findByGroupCode(groupCode);
+        PracticeGroup group = groupRepository.findByGroupCode(groupCode)
+                .orElseThrow(() -> new RuntimeException("El código ingresado no corresponde a ningún grupo de práctica."));
 
-        if (groupOpt.isEmpty()) {
-            throw new RuntimeException("Codigo no corresponde a ningun grupo de practica");
+        if (!"Activo".equalsIgnoreCase(group.getStatus())) {
+            throw new IllegalStateException("El grupo se encuentra Inactivo. No se permiten nuevas vinculaciones.");
         }
-        PracticeGroup group = groupOpt.get();
+
         if (enrollmentRepository.existsByPracticeGroupIdAndStudentId(group.getIdGroup(), studentId)) {
-            throw new RuntimeException("Ya se encuentra esperando confirmación para entrar al grupo");
+            throw new IllegalStateException("Ya te encuentras vinculado a este grupo de práctica.");
         }
 
         PracticeEnrollment enrollment = new PracticeEnrollment();
         enrollment.setPracticeGroupId(group.getIdGroup());
         enrollment.setStudentId(studentId);
-        enrollment.setStatus("PENDIENTE");
+        enrollment.setStatus("ACTIVA");
         enrollment.setEnrollmentDate(LocalDateTime.now());
 
-        return enrollmentRepository.save(enrollment);
-    }
-
-    public List<PracticeEnrollment> getPendingEnrollment(Long groupId, Long professorId){
-        PracticeGroup group = groupRepository.findById(groupId).orElseThrow(() -> new RuntimeException("Grupo de práctica no existe"));
-
-        if(!group.getIdProfessor().equals(professorId)){
-            throw new RuntimeException("ACCESO DENEGADO: No eres el administrador de este grupo");
-        }
-
-        return enrollmentRepository.findByPracticeGroupIdAndStatus(group.getIdGroup(), "PENDIENTE");
-    }
-
-    public PracticeEnrollment updateEnrollmentStatus(Long enrollmentId, String newStatus, Long professorId){
-        PracticeEnrollment enrollment = enrollmentRepository.findById(enrollmentId).orElseThrow(() -> new RuntimeException("La inscripción no existe"));
-
-        PracticeGroup group = groupRepository.findById(enrollment.getPracticeGroupId()).orElseThrow(() -> new RuntimeException("Grupo no existe"));
-
-        if(!group.getIdProfessor().equals(professorId)){
-            throw new RuntimeException("ACCESO DENEGADO: No puedes modificar inscripciones de otros profesores");
-        }
-
-        enrollment.setStatus(newStatus.toUpperCase());
         return enrollmentRepository.save(enrollment);
     }
 
@@ -72,7 +50,7 @@ public class PracticeEnrollmentService {
             groupRepository.findById(enrollment.getPracticeGroupId()).ifPresent(group -> {
                 response.add(new StudentEnrollmentDTO(
                         enrollment.getEnrollmentId(),
-                        enrollment.getStatus(),
+                        group.getStatus(),
                         enrollment.getEnrollmentDate(),
                         group.getGroupCode(),
                         group.getCourseName(),
@@ -83,5 +61,12 @@ public class PracticeEnrollmentService {
             });
         }
         return response;
+    }
+
+    public Long getStudentIdByEnrollment(Long enrollmentId) {
+        PracticeEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new RuntimeException("Inscripción no encontrada."));
+
+        return enrollment.getStudentId();
     }
 }
