@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface PracticeGroupRepository extends JpaRepository<PracticeGroup, Long> {
     Optional<PracticeGroup> findByGroupCode(String groupCode);
     List<PracticeGroup> findByIdProfessor(Long idProfessor);
+    boolean existsByGroupCode(String groupCode);
 }

@@ -19,5 +19,17 @@ spring:
           predicates:
             - Path=/api/groups/**, /api/enrollments/**, /api/logs/**
 
+        #Rutas de documentos
+        - id: document-service
+          uri: http://document-service:8083
+          predicates:
+            - Path=/api/documents/**
+
+        #Rutas notificaciones
+        - id: notification-service
+          uri: http://notification-service:8084
+          predicates:
+            - Path=/api/notifications/**
+
 jwt:
   secret: ${JWT_SECRET}

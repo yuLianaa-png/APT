@@ -1,30 +1,4 @@
 services:
-  # bd auth-service
-  auth-db:
-    image: postgres:15
-    container_name: auth-db-ph
-    environment:
-      POSTGRES_DB: auth_db
-      POSTGRES_USER: ${AUTH_DB_USER}
-      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
-    ports:
-      - "5432:5432"
-    volumes:
-      - auth_postgres_data:/var/lib/postgresql/data
-
-  # bd nucleo practice
-  practice-db:
-    image: postgres:15
-    container_name: practice-db-ph
-    environment:
-      POSTGRES_USER: ${PRACTICE_DB_USER}
-      POSTGRES_PASSWORD: ${PRACTICE_DB_PASSWORD}
-      POSTGRES_DB: practice_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - practice_postgres_data:/var/lib/postgresql/data
-
   # MICROSERVICIOS
   # microservicio de autenticacion
   auth-service:
@@ -32,14 +6,8 @@ services:
     container_name: practicahub-auth
     ports:
       - "8081:8081"
-    depends_on:
-      - auth-db
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-db:5432/auth_db
-      SPRING_DATASOURCE_USERNAME: ${AUTH_DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      JWT_SECRET: ${JWT_SECRET}
+    env_file:
+      - .env
 
   # microservico principal practica
   practice-service:
@@ -49,12 +17,8 @@ services:
     container_name: practicahub-practice
     ports:
       - "8082:8082"
-    depends_on:
-      - practice-db
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://practice-db:5432/practice_db
-      SPRING_DATASOURCE_USERNAME: ${PRACTICE_DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${PRACTICE_DB_PASSWORD}
+    env_file:
+      - .env
 
   #apigateway
   api-gateway:
@@ -64,18 +28,36 @@ services:
     container_name: practicahub-gateway
     ports:
       - "8080:8080"
-    depends_on:
-      - auth-service
-      - practice-service
-    environment:
-      - JWT_SECRET=${JWT_SECRET}
+    env_file:
+      - .env
 
+  #microservicio de documentos
+  document-service:
+    build:
+      context: ./document-service
+    container_name: practicahub-document
+    ports:
+      - "8083:8083"
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
 
-# REDES Y VOLÚMENES
+  #microservicio notificaciones
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: practicahub-notification
+    ports:
+      - "8084:8084"
+    env_file:
+      - .env
+
+#REDES
 networks:
-  practicahub-network:
-    driver: bridge
-
-volumes:
-  auth_postgres_data:
-  practice_postgres_data:
+  default:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: "2001:3200:3200::/64"

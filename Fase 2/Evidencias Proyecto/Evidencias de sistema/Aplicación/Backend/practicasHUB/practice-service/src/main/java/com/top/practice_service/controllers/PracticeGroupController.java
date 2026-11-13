@@ -41,4 +41,51 @@ public class PracticeGroupController {
 
         return ResponseEntity.ok(practiceGroupService.getGroupsByProfessor(professorId));
     }
+
+    @PutMapping("/{groupId}/toggle-status")
+    public ResponseEntity<?> toggleGroupStatus(
+            @PathVariable Long groupId,
+            @RequestParam Long professorId,
+            @RequestHeader(value = "X-User-Role", defaultValue = "PROFESOR") String role) {
+
+        if (!"PROFESOR".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("ACCESO DENEGADO: Solo los profesores pueden administrar el estado de sus grupos.");
+        }
+
+        try {
+            return ResponseEntity.ok(practiceGroupService.toggleGroupStatus(groupId, professorId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{groupId}")
+    public ResponseEntity<?> getGroupById(@PathVariable Long groupId) {
+        return ResponseEntity.ok(practiceGroupService.getGroupById(groupId));
+    }
+
+    @DeleteMapping("/{groupId}")
+    public ResponseEntity<?> deleteGroup(
+            @PathVariable Long groupId,
+            @RequestHeader("X-User-Id") Long authenticatedUserId,
+            @RequestHeader("X-User-Role") String authenticatedUserRole) {
+
+        try {
+            if (!"PROFESOR".equalsIgnoreCase(authenticatedUserRole)) {
+                return ResponseEntity.status(403).body("ACCION DENEGADA: Solo los profesores pueden eliminar grupos.");
+            }
+
+            practiceGroupService.deleteGroup(groupId, authenticatedUserId);
+
+            return ResponseEntity.ok().body("Grupo eliminado exitosamente.");
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al eliminar el grupo: " + e.getMessage());
+        }
+    }
 }

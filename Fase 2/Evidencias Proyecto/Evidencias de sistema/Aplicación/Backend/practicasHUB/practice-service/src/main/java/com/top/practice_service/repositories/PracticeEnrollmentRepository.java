@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface PracticeEnrollmentRepository extends JpaRepository<PracticeEnrollment, Long> {
     boolean existsByPracticeGroupIdAndStudentId(Long practiceGroupId, Long studentId);
-    List<PracticeEnrollment> findByPracticeGroupIdAndStatus(Long practiceGroupId, String status);
     List<PracticeEnrollment> findByStudentId(Long studentId);
+    List<PracticeEnrollment> findByPracticeGroupId(Long practiceGroupId);
 }

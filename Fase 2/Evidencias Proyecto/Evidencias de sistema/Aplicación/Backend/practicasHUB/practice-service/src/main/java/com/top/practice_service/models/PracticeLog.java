@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @NoArgsConstructor
@@ -29,5 +30,25 @@ public class PracticeLog {
 
     private Double totalHours;
     private String activitiesDescription;
-    private String status;
+
+    @Column(name = "request_status", length = 30)
+    private String requestStatus = "Sin solicitud";
+
+    @Column(name = "status", length = 30)
+    private String status = "REGISTRADA";
+
+    @Column(name = "correction_reason", columnDefinition = "TEXT")
+    private String correctionReason;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "teacher_observation", columnDefinition = "TEXT")
+    private String teacherObservation;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.status = "REGISTRADA";
+    }
 }
