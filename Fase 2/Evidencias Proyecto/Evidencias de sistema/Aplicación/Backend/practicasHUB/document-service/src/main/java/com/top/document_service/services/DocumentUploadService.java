@@ -63,6 +63,7 @@ public class DocumentUploadService {
     }
 
     public GroupDocument uploadGroupDocument(MultipartFile file, Long groupId, String description, Boolean requiresSubmission) throws IOException {
+        validateGroupIsActive(groupId);
         String savedPublicUrl = uploadToSupabase(file);
 
         GroupDocument doc = new GroupDocument();
@@ -85,7 +86,7 @@ public class DocumentUploadService {
                 notificationClient.sendBulkNotification(
                         studentIds,
                         groupId,
-                        group.getName(),
+                        group.getCourseName(),
                         group.getGroupCode(),
                         "DOCUMENT",
                         "Nuevo documento disponible",
@@ -101,6 +102,9 @@ public class DocumentUploadService {
     }
 
     public DocumentSubmission uploadSubmission(MultipartFile file, Long enrollmentId, Long groupDocId, String comments) throws IOException {
+        GroupDocument groupDoc = groupDocumentRepository.findById(groupDocId)
+                .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
+        validateGroupIsActive(groupDoc.getGroupId());
         Optional<DocumentSubmission> existingOpt = submissionRepository.findByEnrollmentIdAndGroupDocumentIdAndActiveTrue(enrollmentId, groupDocId);
 
         int nextVersion = 1;
@@ -130,6 +134,16 @@ public class DocumentUploadService {
         sub.setActive(true);
         sub.setStatus("Entregado");
 
+        try {
+            var group = practiceClient.getGroupById(groupDoc.getGroupId());
+
+            notificationClient.sendNotification(
+                    group.getIdProfessor(), group.getIdGroup(), group.getCourseName(), group.getGroupCode(),
+                    "SUBMISSION", "Nueva entrega documental",
+                    "Un estudiante ha enviado o actualizado una entrega del documento: " + groupDoc.getName(), "/documentos"
+            );
+        } catch (Exception e) { System.err.println("ADVERTENCIA: Error notificando al docente: " + e.getMessage()); }
+
         return submissionRepository.save(sub);
     }
 
@@ -149,6 +163,10 @@ public class DocumentUploadService {
         DocumentSubmission sub = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Entrega no encontrada"));
 
+        GroupDocument groupDoc = groupDocumentRepository.findById(sub.getGroupDocumentId())
+                .orElseThrow(() -> new RuntimeException("Documento asociado no encontrado"));
+        validateGroupIsActive(groupDoc.getGroupId());
+
         if (teacherComment == null || teacherComment.trim().isEmpty()) {
             throw new IllegalArgumentException("El comentario es obligatorio para solicitar una corrección.");
         }
@@ -156,17 +174,15 @@ public class DocumentUploadService {
         sub.setStatus("Corrección solicitada");
         sub.setComments(teacherComment);
         DocumentSubmission savedSub = submissionRepository.save(sub);
-
         try {
-            GroupDocument groupDoc = groupDocumentRepository.findById(sub.getGroupDocumentId()).orElse(null);
             if (groupDoc != null) {
                 var group = practiceClient.getGroupById(groupDoc.getGroupId());
                 Long studentId = practiceClient.getStudentIdByEnrollment(sub.getEnrollmentId());
 
                 notificationClient.sendNotification(
                         studentId,
-                        group.getId(),
-                        group.getName(),
+                        group.getIdGroup(),
+                        group.getCourseName(),
                         group.getGroupCode(),
                         "CORRECTION",
                         "Corrección Solicitada",
@@ -184,6 +200,7 @@ public class DocumentUploadService {
     public GroupDocument replaceGroupDocument(MultipartFile file, Long groupDocumentId) throws IOException {
         GroupDocument existing = groupDocumentRepository.findById(groupDocumentId)
                 .orElseThrow(() -> new RuntimeException("Documento original no encontrado"));
+        validateGroupIsActive(existing.getGroupId());
 
         existing.setActive(false);
         groupDocumentRepository.save(existing);
@@ -200,7 +217,33 @@ public class DocumentUploadService {
         newDoc.setActive(true);
         newDoc.setVersion((existing.getVersion() != null ? existing.getVersion() : 1) + 1);
 
+        try {
+            List<Long> studentIds = practiceClient.getStudentIdsByGroup(existing.getGroupId());
+            var group = practiceClient.getGroupById(existing.getGroupId());
+            if (studentIds != null && !studentIds.isEmpty()) {
+                notificationClient.sendBulkNotification(
+                        studentIds, existing.getGroupId(), group.getCourseName(), group.getGroupCode(),
+                        "DOCUMENT_UPDATE", "Documento actualizado",
+                        "El profesor actualizó el archivo: " + file.getOriginalFilename(), "/documentos"
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("ADVERTENCIA: Error notificando reemplazo: " + e.getMessage());
+        }
+
         return groupDocumentRepository.save(newDoc);
+    }
+
+    private void validateGroupIsActive(Long groupId) {
+        try {
+            var group = practiceClient.getGroupById(groupId);
+            if ("INACTIVO".equalsIgnoreCase(group.getStatus())) {
+                throw new IllegalStateException("ACCION DENEGADA: El grupo está Inactivo (modo solo lectura).");
+            }
+        } catch (Exception e) {
+            if (e instanceof IllegalStateException) throw e;
+            throw new RuntimeException("No se pudo validar el estado del grupo.");
+        }
     }
 
 }

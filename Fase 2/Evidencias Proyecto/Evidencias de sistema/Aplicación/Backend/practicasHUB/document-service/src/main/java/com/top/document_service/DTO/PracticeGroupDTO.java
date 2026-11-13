@@ -11,7 +11,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PracticeGroupDTO {
-    private Long id;
-    private String name;
+    private Long idGroup;
+    private String courseName;
     private String groupCode;
+    private String status;
+    private Long idProfessor;
 }

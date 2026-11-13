@@ -98,7 +98,6 @@ public class PracticeLogController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ERROR: Solo profesores pueden rechazar correcciones.");
         }
         try {
-            // Se extrae el "comment" del JSON enviado por el frontend
             String comment = payload.get("comment");
             return ResponseEntity.ok(logService.rejectCorrection(logId, comment));
         } catch (Exception e) {
@@ -106,3 +105,4 @@ public class PracticeLogController {
         }
     }
 }
+

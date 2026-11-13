@@ -5,6 +5,7 @@ import com.top.practice_service.repositories.PracticeGroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +27,7 @@ public class PracticeGroupService {
 
         group.setIdProfessor(professorId);
         group.setStatus("Activo");
+        group.setCreationDate(LocalDateTime.now());
 
         if (group.getGroupCode() == null || group.getGroupCode().isEmpty()) {
             String generatedCode;
@@ -67,5 +69,16 @@ public class PracticeGroupService {
     public PracticeGroup getGroupById(Long groupId) {
         return practiceGroupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Grupo de práctica no encontrado."));
+    }
+
+    public void deleteGroup(Long groupId, Long professorId) {
+        PracticeGroup group = practiceGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("El grupo no existe."));
+
+        if (!group.getIdProfessor().equals(professorId)) {
+            throw new SecurityException("ACCION DENEGADA: No tienes permiso para eliminar este grupo.");
+        }
+
+        practiceGroupRepository.delete(group);
     }
 }

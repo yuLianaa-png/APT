@@ -64,4 +64,28 @@ public class PracticeGroupController {
     public ResponseEntity<?> getGroupById(@PathVariable Long groupId) {
         return ResponseEntity.ok(practiceGroupService.getGroupById(groupId));
     }
+
+    @DeleteMapping("/{groupId}")
+    public ResponseEntity<?> deleteGroup(
+            @PathVariable Long groupId,
+            @RequestHeader("X-User-Id") Long authenticatedUserId,
+            @RequestHeader("X-User-Role") String authenticatedUserRole) {
+
+        try {
+            if (!"PROFESOR".equalsIgnoreCase(authenticatedUserRole)) {
+                return ResponseEntity.status(403).body("ACCION DENEGADA: Solo los profesores pueden eliminar grupos.");
+            }
+
+            practiceGroupService.deleteGroup(groupId, authenticatedUserId);
+
+            return ResponseEntity.ok().body("Grupo eliminado exitosamente.");
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al eliminar el grupo: " + e.getMessage());
+        }
+    }
 }

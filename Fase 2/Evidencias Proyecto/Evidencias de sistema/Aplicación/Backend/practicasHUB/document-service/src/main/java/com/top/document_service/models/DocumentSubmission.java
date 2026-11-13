@@ -32,10 +32,10 @@ public class DocumentSubmission {
     @Column(columnDefinition = "TEXT")
     private String comments;
 
-    @Column(name = "file_type", length = 50)
+    @Column(name = "file_type", length = 150)
     private String fileType;
 
-    @Column(name = "file_path", length = 255)
+    @Column(name = "file_path", length = 400)
     private String filePath;
 
     @Column(name = "submission_date")

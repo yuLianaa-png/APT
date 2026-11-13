@@ -1,5 +1,6 @@
 package com.top.document_service.controller;
 
+import com.top.document_service.clients.PracticeClient;
 import com.top.document_service.models.GroupDocument;
 import com.top.document_service.repositories.DocumentSubmissionRepository;
 import com.top.document_service.repositories.GroupDocumentRepository;
@@ -25,6 +26,8 @@ public class DocumentController {
     private DocumentSubmissionRepository submissionRepo;
     @Autowired
     private LogEvidenceRepository logEvidenceRepo;
+    @Autowired
+    private PracticeClient practiceClient;
 
     @PostMapping("/group")
     public ResponseEntity<?> uploadGroupDoc(
@@ -74,7 +77,25 @@ public class DocumentController {
     }
 
     @GetMapping("/group/{groupId}")
-    public ResponseEntity<List<GroupDocument>> getGroupDocuments(@PathVariable Long groupId) {
+    public ResponseEntity<?> getGroupDocuments(
+            @PathVariable Long groupId,
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestHeader("X-User-Role") String role) {
+
+        if ("PROFESOR".equalsIgnoreCase(role)) {
+            var group = practiceClient.getGroupById(groupId);
+            if (!group.getIdProfessor().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No tienes acceso a los documentos de este grupo.");
+            }
+        }
+
+        if ("ESTUDIANTE".equalsIgnoreCase(role)) {
+            List<Long> studentIds = practiceClient.getStudentIdsByGroup(groupId);
+            if (!studentIds.contains(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("No estás vinculado a este grupo.");
+            }
+        }
+
         return ResponseEntity.ok(groupDocRepo.findByGroupIdAndActiveTrue(groupId));
     }
 

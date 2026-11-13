@@ -1,7 +1,9 @@
 package com.top.practice_service.services;
 
 import com.top.practice_service.DTO.StudentDashboardDTO;
+import com.top.practice_service.clients.NotificationClient;
 import com.top.practice_service.models.PracticeEnrollment;
+import com.top.practice_service.models.PracticeGroup;
 import com.top.practice_service.models.PracticeLog;
 import com.top.practice_service.repositories.PracticeEnrollmentRepository;
 import com.top.practice_service.repositories.PracticeGroupRepository;
@@ -23,6 +25,9 @@ public class PracticeLogService {
 
     @Autowired
     private PracticeGroupRepository groupRepository;
+
+    @Autowired
+    private NotificationClient notificationClient;
 
     public PracticeLog registerHours(Long enrollmentId, PracticeLog request, Long studentId) {
         PracticeEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
@@ -147,6 +152,21 @@ public class PracticeLogService {
 
         log.setCorrectionReason(reason);
         log.setRequestStatus("Pendiente");
+
+        try {
+            PracticeGroup group = groupRepository.findById(log.getIdEnrollment()).orElse(null);
+            PracticeEnrollment enrollment = enrollmentRepository.findById(log.getIdEnrollment()).get();
+            PracticeGroup groupReal = groupRepository.findById(enrollment.getPracticeGroupId()).get();
+
+            notificationClient.sendNotification(
+                    groupReal.getIdProfessor(), groupReal.getIdGroup(), groupReal.getCourseName(), groupReal.getGroupCode(),
+                    "CORRECTION_REQUEST", "Nueva solicitud de corrección",
+                    "Un estudiante solicitó corregir una jornada. Motivo: " + reason, "/jornadas"
+            );
+        } catch (Exception e) {
+            System.err.println("Error notificando al docente: " + e.getMessage());
+        }
+
         return logRepository.save(log);
     }
 
@@ -163,6 +183,18 @@ public class PracticeLogService {
         log.setTeacherObservation(observation);
         log.setStatus("OBSERVADA");
         log.setRequestStatus("Habilitada");
+
+        try {
+            PracticeEnrollment enrollment = enrollmentRepository.findById(log.getIdEnrollment()).get();
+            PracticeGroup group = groupRepository.findById(enrollment.getPracticeGroupId()).get();
+
+            notificationClient.sendNotification(
+                    enrollment.getStudentId(), group.getIdGroup(), group.getCourseName(), group.getGroupCode(),
+                    "CORRECTION_REPLY", "Corrección habilitada",
+                    "El docente ha respondido a tu solicitud. Observación: " + observation, "/jornadas"
+            );
+        } catch (Exception e) { System.err.println("Error notificando al estudiante: " + e.getMessage()); }
+
         return logRepository.save(log);
     }
 
@@ -178,6 +210,18 @@ public class PracticeLogService {
 
         log.setTeacherObservation(comment);
         log.setRequestStatus("Rechazada");
+
+        try {
+            PracticeEnrollment enrollment = enrollmentRepository.findById(log.getIdEnrollment()).get();
+            com.top.practice_service.models.PracticeGroup group = groupRepository.findById(enrollment.getPracticeGroupId()).get();
+
+            notificationClient.sendNotification(
+                    enrollment.getStudentId(), group.getIdGroup(), group.getCourseName(), group.getGroupCode(),
+                    "CORRECTION_REPLY", "Solicitud rechazada",
+                    "El docente ha respondido a tu solicitud. Observación: " + comment, "/jornadas"
+            );
+        } catch (Exception e) { System.err.println("Error notificando al estudiante: " + e.getMessage()); }
+
         return logRepository.save(log);
     }
 
