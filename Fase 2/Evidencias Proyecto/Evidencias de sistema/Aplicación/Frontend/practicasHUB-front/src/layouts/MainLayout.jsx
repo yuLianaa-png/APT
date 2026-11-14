@@ -2,39 +2,22 @@ import { Outlet } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
 
-const MainLayout = () => {
-  return (
-    <div style={styles.layout}>
-      <Navbar />
-      <div style={styles.body}>
-        <Sidebar />
-        <main style={styles.content}>
-          <Outlet />
-        </main>
-      </div>
+/**
+ * Disposición del **nivel general**: antes de elegir un grupo (§2.2).
+ *
+ * El `Sidebar` sin la prop `grupo` muestra el menú general. Dentro de un grupo se usa
+ * `LayoutGrupo`, que además carga el contexto y pinta el banner.
+ */
+const MainLayout = () => (
+  <div className="ph-armazon">
+    <Navbar />
+    <div className="ph-marco">
+      <Sidebar />
+      <main className="ph-marco__contenido">
+        <Outlet />
+      </main>
     </div>
-  );
-};
-
-const styles = {
-  layout: {
-    minHeight: '100vh',
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  body: {
-    display: 'flex',
-    flex: 1,
-    minWidth: 0,
-  },
-  content: {
-    flex: 1,
-    padding: '25px',
-    backgroundColor: '#f4f6f9',
-    overflowY: 'auto',
-    minWidth: 0,
-  },
-};
+  </div>
+);
 
 export default MainLayout;

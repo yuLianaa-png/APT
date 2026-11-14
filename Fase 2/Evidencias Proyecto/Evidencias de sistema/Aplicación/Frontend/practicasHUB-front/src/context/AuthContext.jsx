@@ -1,66 +1,76 @@
-import { createContext, useState, useContext } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { AuthContext } from './authContexto';
 import { ROLES, STORAGE_KEYS } from '../utils/constants';
 
-export const AuthContext = createContext(null);
+/**
+ * Sesión del usuario.
+ */
 
-const getStoredSession = () => {
-  const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-  const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+const ROLES_VALIDOS = new Set(Object.values(ROLES));
 
-  if (!storedUser || !storedToken) {
-    return {
-      user: {
-        id: 1,
-        nombre: 'Estudiante Demo',
-        email: 'estudiante@practicahub.cl',
-        rol: ROLES.ESTUDIANTE,
-        isDemo: true,
-      },
-      token: 'demo-token',
-    };
+/** Lee la sesión guardada. Cualquier cosa rara se descarta y se empieza sin sesión. */
+const leerSesionGuardada = () => {
+  const sinSesion = { usuario: null, token: null };
+
+  let usuarioGuardado;
+  let tokenGuardado;
+  try {
+    usuarioGuardado = window.localStorage.getItem(STORAGE_KEYS.USER);
+    tokenGuardado = window.localStorage.getItem(STORAGE_KEYS.TOKEN);
+  } catch {
+    // Almacenamiento bloqueado (ventana privada, cookies desactivadas): sin sesión.
+    return sinSesion;
   }
 
+  if (!usuarioGuardado || !tokenGuardado) return sinSesion;
+
   try {
-    return { user: JSON.parse(storedUser), token: storedToken };
+    const usuario = JSON.parse(usuarioGuardado);
+    // Un rol que ya no existe —SUPERVISOR o ADMIN de la versión anterior— invalida la
+    // sesión en lugar de dejar a alguien dentro con un perfil sin significado.
+    if (!usuario?.id || !ROLES_VALIDOS.has(usuario.rol)) {
+      window.localStorage.removeItem(STORAGE_KEYS.USER);
+      window.localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      return sinSesion;
+    }
+    return { usuario, token: tokenGuardado };
   } catch {
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-    return { user: null, token: null };
+    window.localStorage.removeItem(STORAGE_KEYS.USER);
+    window.localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    return sinSesion;
   }
 };
 
 export const AuthProvider = ({ children }) => {
-  const [session, setSession] = useState(getStoredSession);
+  const [sesion, setSesion] = useState(leerSesionGuardada);
 
-  const login = (userData, jwtToken) => {
-    setSession({ user: userData, token: jwtToken });
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
-    localStorage.setItem(STORAGE_KEYS.TOKEN, jwtToken);
-  };
+  const iniciarSesion = useCallback((usuario, token) => {
+    setSesion({ usuario, token });
+    try {
+      window.localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(usuario));
+      window.localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+    } catch {
+      // Sin almacenamiento la sesión dura lo que la pestaña. Mejor eso que no entrar.
+    }
+  }, []);
 
-  const logout = () => {
-    setSession({ user: null, token: null });
-    localStorage.removeItem(STORAGE_KEYS.USER);
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
-  };
+  const cerrarSesion = useCallback(() => {
+    setSesion({ usuario: null, token: null });
+    try {
+      window.localStorage.removeItem(STORAGE_KEYS.USER);
+      window.localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    } catch { /* nada que limpiar */ }
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{
-      ...session,
-      loading: false,
-      login,
-      logout,
-      isAuthenticated: !!session.token,
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  const valor = useMemo(() => ({
+    usuario: sesion.usuario,
+    token: sesion.token,
+    estaAutenticado: Boolean(sesion.token && sesion.usuario),
+    esEstudiante: sesion.usuario?.rol === ROLES.ESTUDIANTE,
+    esDocente: sesion.usuario?.rol === ROLES.DOCENTE,
+    iniciarSesion,
+    cerrarSesion,
+  }), [sesion, iniciarSesion, cerrarSesion]);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;
 };

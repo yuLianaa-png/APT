@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { STORAGE_KEYS } from '../utils/constants';
+import { API_URL } from './config';
 
+// La URL del backend viene del entorno (VITE_API_URL), nunca cableada: el mismo build
+// tiene que servir para local, Render y cualquier otro entorno (RNF-07).
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
