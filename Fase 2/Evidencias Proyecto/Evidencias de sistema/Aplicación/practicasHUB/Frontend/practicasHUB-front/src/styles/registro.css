@@ -1,0 +1,419 @@
+/**
+ * Hoja de la página de registro (`/registro`, RF-01).
+ *
+ * Es la primera pantalla que ve alguien que llega a PrácticasHub, así que se viste como
+ * una presentación del proyecto y no como un formulario suelto: a la izquierda, sobre el
+ * navy de marca, lo que la aplicación hace de verdad (jornadas, correcciones autorizadas,
+ * documentos versionados); a la derecha, la tarjeta con el alta.
+ *
+ * Qué se decidió y por qué:
+ *
+ *  - Es hermana de la pantalla de acceso, no un producto aparte. Reutiliza la misma
+ *    disposición de dos columnas, el mismo degradado navy del aside y los mismos anchos
+ *    de tarjeta que `.ph-acceso*` en `base.css`. No se inventa un lenguaje nuevo; si algo
+ *    cambia allí, aquí hay que mirarlo.
+ *  - Las dos casillas de perfil son el único punto de la pantalla donde se toma una
+ *    decisión, así que son el elemento más vistoso. El estado elegido no se cuenta solo
+ *    con color: hay anillo de 2 px, fondo propio, nombre en negrita y el punto del radio
+ *    nativo. Quien no distinga el teal sigue viendo cuál está marcada.
+ *  - El `<input type="radio">` queda VISIBLE. Ocultarlo (aunque fuera solo visualmente)
+ *    obligaría a reconstruir a mano el indicador de estado y el foco; dejándolo a la
+ *    vista, el navegador ya aporta los dos y el único añadido es un anillo en la casilla
+ *    completa cuando el radio tiene el foco.
+ *  - `ph-registro-avisos` y `ph-registro-sugerencia` viven siempre en el DOM por sus
+ *    `aria-live`. Vacíos se ocultan con `:empty` y `display: none`, que además los saca
+ *    del `gap` del contenedor flex: sin esto reservarían un hueco permanente y la página
+ *    daría un salto al aparecer el error.
+ *  - `Campo` no pone `ph-campo__control--error`: marca el control con `aria-invalid`. El
+ *    borde de error se resuelve aquí con `[aria-invalid='true']`, y el grosor extra va en
+ *    `box-shadow: inset`, no en `border-width`, para no mover nada al aparecer el error.
+ *  - El botón de envío se bloquea con `aria-disabled` (lo hace `Boton`), nunca con
+ *    `disabled`: su estilo de bloqueo ya está en `.ph-boton[aria-disabled='true']` y aquí
+ *    solo se evita que el hover lo contradiga.
+ *
+ * Todos los valores salen de `tokens.css`. No hay ningún hexadecimal nuevo.
+ * No hay modo oscuro, por el motivo que explica la cabecera de `tokens.css`.
+ */
+
+/* ------------------------------------------------------- Armazón de la página */
+
+.ph-registro-contenedor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+/* ---------------------------------------------------- Presentación (izquierda) */
+
+.ph-registro-presentacion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-esp-8);
+  padding: var(--ph-esp-10);
+  background: linear-gradient(160deg, var(--ph-navy-800), var(--ph-navy-600));
+  color: var(--ph-texto-invertido);
+}
+
+.ph-registro-marca {
+  display: flex;
+  align-items: center;
+  gap: var(--ph-esp-3);
+}
+
+.ph-registro-marca-texto {
+  font-size: var(--ph-txt-lg);
+  font-weight: var(--ph-peso-fuerte);
+}
+
+.ph-registro-titular {
+  max-width: 24ch;
+  color: var(--ph-texto-invertido);
+  font-size: var(--ph-txt-2xl);
+  letter-spacing: -0.02em;
+}
+
+.ph-registro-ventajas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-esp-5);
+  max-width: 38ch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Cada ventaja lleva un visto dibujado con dos bordes: ni icono de fuente ni emoji, que
+ * se leerían en voz alta sin aportar nada. Es decorativo y el texto ya lo dice todo.
+ */
+.ph-registro-ventaja {
+  position: relative;
+  padding-left: var(--ph-esp-8);
+  color: var(--ph-teal-100);
+  font-size: var(--ph-txt-md);
+  line-height: var(--ph-linea);
+}
+
+.ph-registro-ventaja::before {
+  content: '';
+  position: absolute;
+  top: 0.35em;
+  left: var(--ph-esp-2);
+  width: 7px;
+  height: 12px;
+  border-right: 2px solid var(--ph-teal-500);
+  border-bottom: 2px solid var(--ph-teal-500);
+  transform: rotate(45deg);
+}
+
+/* ------------------------------------------------------- Tarjeta (derecha) */
+
+.ph-registro-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-esp-5);
+  justify-content: center;
+  padding: var(--ph-esp-10) var(--ph-esp-8);
+  background: var(--ph-fondo);
+}
+
+.ph-registro-encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-esp-2);
+}
+
+.ph-registro-titulo {
+  font-size: var(--ph-txt-2xl);
+  letter-spacing: -0.01em;
+}
+
+.ph-registro-bajada {
+  color: var(--ph-texto-suave);
+  font-size: var(--ph-txt-sm);
+  line-height: var(--ph-linea);
+}
+
+/*
+ * Región `aria-live`: existe siempre, pero vacía no ocupa ni alto ni hueco de `gap`.
+ * Así el aviso de error no descoloca el formulario al aparecer.
+ */
+.ph-registro-avisos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-esp-3);
+}
+
+.ph-registro-avisos:empty { display: none; }
+
+/* ------------------------------------------------------------- Formulario */
+
+.ph-registro-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-esp-5);
+}
+
+/* Va sobre el `.ph-campo` de cada campo y sobre el `<fieldset>` del perfil. */
+.ph-registro-fila {
+  min-width: 0;
+}
+
+.ph-registro-control {
+  width: 100%;
+}
+
+/*
+ * `Campo` marca el error con `aria-invalid`, no con una clase. El segundo píxel de borde
+ * va por dentro para que el campo no cambie de tamaño cuando aparece el error.
+ */
+.ph-registro-control[aria-invalid='true'] {
+  border-color: var(--ph-error-texto);
+  box-shadow: inset 0 0 0 1px var(--ph-error-texto);
+}
+
+/* ------------------------------------------------------ Selector de perfil */
+
+.ph-registro-perfiles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-esp-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ph-registro-leyenda {
+  padding: 0;
+  margin-bottom: var(--ph-esp-1);
+}
+
+.ph-registro-opciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ph-esp-3);
+}
+
+/*
+ * La casilla: el radio nativo a la izquierda, nombre y detalle a la derecha. El radio se
+ * deja visible a propósito (ver cabecera). El `<label>` entero es área de clic, muy por
+ * encima de los 44 px de `--ph-objetivo-min`.
+ */
+.ph-registro-opcion {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--ph-esp-1) var(--ph-esp-3);
+  min-height: var(--ph-objetivo-min);
+  padding: var(--ph-esp-4);
+  border: 1px solid var(--ph-borde-fuerte);
+  border-radius: var(--ph-radio-lg);
+  background: var(--ph-superficie);
+  cursor: pointer;
+  transition:
+    border-color var(--ph-transicion),
+    background var(--ph-transicion),
+    box-shadow var(--ph-transicion);
+}
+
+.ph-registro-opcion:hover {
+  border-color: var(--ph-gris-400);
+  background: var(--ph-gris-050);
+}
+
+.ph-registro-opcion-radio {
+  grid-row: 1 / span 2;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--ph-teal-600);
+  cursor: pointer;
+}
+
+.ph-registro-opcion-nombre {
+  color: var(--ph-texto);
+  font-size: var(--ph-txt-md);
+  font-weight: var(--ph-peso-medio);
+  line-height: var(--ph-linea-apretada);
+}
+
+.ph-registro-opcion-detalle {
+  grid-column: 2;
+  color: var(--ph-texto-suave);
+  font-size: var(--ph-txt-xs);
+  line-height: var(--ph-linea);
+}
+
+/*
+ * Elegida: anillo de 2 px, fondo propio y nombre en negrita, más el punto del radio.
+ * Cuatro indicios, de los cuales tres no dependen de distinguir el color.
+ */
+.ph-registro-opcion--seleccionada {
+  border-color: var(--ph-teal-600);
+  background: var(--ph-teal-100);
+  box-shadow: inset 0 0 0 2px var(--ph-teal-600);
+}
+
+.ph-registro-opcion--seleccionada:hover {
+  border-color: var(--ph-teal-600);
+  background: var(--ph-teal-100);
+}
+
+.ph-registro-opcion--seleccionada .ph-registro-opcion-nombre {
+  font-weight: var(--ph-peso-negrita);
+}
+
+.ph-registro-opcion--seleccionada .ph-registro-opcion-detalle {
+  color: var(--ph-gris-700);
+}
+
+/* El error del perfil se marca en las dos casillas: ninguna está elegida todavía. */
+.ph-registro-opcion--error:not(.ph-registro-opcion--seleccionada) {
+  border-color: var(--ph-error-texto);
+  background: var(--ph-error-fondo);
+}
+
+/*
+ * El foco por teclado tiene que verse en la casilla, no solo en el radio de 18 px. Se
+ * repite el anillo del sistema (`--ph-foco-*`) alrededor del `<label>`.
+ */
+.ph-registro-opcion:has(.ph-registro-opcion-radio:focus-visible) {
+  outline: var(--ph-foco-grosor) solid var(--ph-foco-color);
+  outline-offset: var(--ph-foco-separacion);
+}
+
+/*
+ * Mientras se crea la cuenta las casillas quedan bloqueadas, y se ve. El radio conserva
+ * `aria-disabled` y no `disabled`, así que sigue en el orden de tabulación y anuncia su
+ * estado; esto solo hace visible lo que ya ocurre.
+ */
+.ph-registro-opcion--bloqueada {
+  cursor: not-allowed;
+  background: var(--ph-superficie-tenue);
+  color: var(--ph-texto-suave);
+}
+
+.ph-registro-opcion--bloqueada .ph-registro-opcion-radio {
+  cursor: not-allowed;
+}
+
+/*
+ * Pista del perfil según el dominio del correo. Vacía se oculta, igual que los avisos:
+ * si reservara alto, escribir el correo movería el botón de envío.
+ */
+.ph-registro-sugerencia {
+  padding: var(--ph-esp-2) var(--ph-esp-3);
+  border-left: 3px solid var(--ph-info-borde);
+  border-radius: var(--ph-radio-sm);
+  background: var(--ph-info-fondo);
+  color: var(--ph-info-texto);
+  font-size: var(--ph-txt-xs);
+  line-height: var(--ph-linea);
+}
+
+.ph-registro-sugerencia:empty { display: none; }
+
+.ph-registro-error-perfil {
+  align-items: flex-start;
+}
+
+/* ------------------------------------------------------------ Envío y pie */
+
+.ph-registro-enviar {
+  margin-top: var(--ph-esp-1);
+}
+
+/* Bloqueado por `aria-disabled`: el hover no debe sugerir que se puede pulsar. */
+.ph-registro-enviar[aria-disabled='true'] {
+  background: var(--ph-navy-700);
+}
+
+.ph-registro-pie {
+  padding-top: var(--ph-esp-4);
+  border-top: 1px solid var(--ph-borde);
+  color: var(--ph-texto-suave);
+  font-size: var(--ph-txt-sm);
+  text-align: center;
+}
+
+/* Enlace con alto de objetivo táctil propio: es el otro camino de esta pantalla. */
+.ph-registro-enlace {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ph-objetivo-min);
+  padding: 0 var(--ph-esp-2);
+  color: var(--ph-teal-600);
+  font-weight: var(--ph-peso-medio);
+}
+
+.ph-registro-enlace:hover {
+  color: var(--ph-navy-700);
+}
+
+/* ------------------------------------------------------------- Responsive */
+
+/*
+ * Una sola columna y presentación comprimida: quien entra desde el móvil viene a crear
+ * la cuenta, no a leer el folleto. Se mantienen las tres ventajas (son lo que la
+ * aplicación promete) pero en cuerpo pequeño y con menos aire.
+ */
+@media (max-width: 900px) {
+  .ph-registro-contenedor {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .ph-registro-presentacion {
+    gap: var(--ph-esp-3);
+    padding: var(--ph-esp-5) var(--ph-esp-5) var(--ph-esp-6);
+  }
+
+  .ph-registro-titular {
+    max-width: none;
+    font-size: var(--ph-txt-lg);
+  }
+
+  .ph-registro-ventajas {
+    gap: var(--ph-esp-2);
+    max-width: none;
+  }
+
+  .ph-registro-ventaja {
+    padding-left: var(--ph-esp-6);
+    font-size: var(--ph-txt-sm);
+    line-height: var(--ph-linea-apretada);
+  }
+
+  .ph-registro-ventaja::before {
+    left: 0;
+    width: 6px;
+    height: 10px;
+  }
+
+  .ph-registro-tarjeta {
+    padding: var(--ph-esp-6) var(--ph-esp-5);
+  }
+
+  .ph-registro-titulo {
+    font-size: var(--ph-txt-xl);
+  }
+}
+
+/* Dos casillas en columna: en estrecho, una al lado de otra deja el detalle ilegible. */
+@media (max-width: 560px) {
+  .ph-registro-opciones {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A 320 px el relleno se recorta para que no haya desplazamiento horizontal. */
+@media (max-width: 380px) {
+  .ph-registro-presentacion,
+  .ph-registro-tarjeta {
+    padding: var(--ph-esp-5) var(--ph-esp-4);
+  }
+
+  .ph-registro-opcion {
+    padding: var(--ph-esp-3);
+  }
+}

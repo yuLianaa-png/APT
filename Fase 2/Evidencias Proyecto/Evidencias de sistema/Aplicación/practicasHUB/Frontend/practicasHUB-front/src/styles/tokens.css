@@ -1,0 +1,121 @@
+/**
+ * Tokens de diseño de PrácticasHub.
+ *
+ * Única fuente de valores visuales. Ningún componente de `components/ui/` escribe un
+ * color hexadecimal: todos leen de aquí. Así el sistema se cambia en un archivo y no en
+ * veinte objetos `styles` repartidos por las páginas, que es lo que había antes.
+ *
+ */
+
+:root {
+  /* --- Marca ------------------------------------------------------------- */
+  --ph-navy-900: #0d1b2b;
+  --ph-navy-800: #142942;  /* color de marca del prototipo */
+  --ph-navy-700: #1d3a5c;
+  --ph-navy-600: #245185;
+  --ph-navy-500: #36699f;
+
+  --ph-teal-600: #0f7a6d;  /* teal legible sobre blanco: texto y enlaces */
+  --ph-teal-500: #1fc0ae;  /* teal de marca: acentos, bordes, foco */
+  --ph-teal-100: #d9f5f1;
+
+  /* --- Neutros ----------------------------------------------------------- */
+  --ph-gris-900: #1a2433;
+  --ph-gris-700: #39455a;
+  --ph-gris-600: #566274;
+  --ph-gris-400: #8d97a8;
+  --ph-gris-300: #c7cedb;
+  --ph-gris-200: #e1e6ee;
+  --ph-gris-100: #eff2f7;
+  --ph-gris-050: #f6f8fb;
+  --ph-blanco: #ffffff;
+
+  /* --- Semánticos: siempre texto oscuro sobre fondo claro, ≥ 4,5:1 ------- */
+  --ph-exito-texto: #0f6b4a;
+  --ph-exito-fondo: #e4f4ec;
+  --ph-exito-borde: #a8d9c2;
+
+  --ph-espera-texto: #80540a;
+  --ph-espera-fondo: #fdf2da;
+  --ph-espera-borde: #e8cb8d;
+
+  --ph-error-texto: #a1302a;
+  --ph-error-fondo: #fbe9e7;
+  --ph-error-borde: #e7b4ae;
+
+  --ph-info-texto: #19508f;
+  --ph-info-fondo: #e8f0fb;
+  --ph-info-borde: #b2cbec;
+
+  --ph-neutro-texto: #44506a;
+  --ph-neutro-fondo: var(--ph-gris-100);
+  --ph-neutro-borde: var(--ph-gris-300);
+
+  /* --- Roles de superficie y texto --------------------------------------- */
+  --ph-fondo: var(--ph-gris-050);
+  --ph-superficie: var(--ph-blanco);
+  --ph-superficie-tenue: var(--ph-gris-100);
+  --ph-borde: var(--ph-gris-200);
+  --ph-borde-fuerte: var(--ph-gris-300);
+
+  --ph-texto: var(--ph-gris-900);
+  --ph-texto-suave: var(--ph-gris-600);
+  --ph-texto-tenue: var(--ph-gris-400);
+  --ph-texto-invertido: var(--ph-blanco);
+  --ph-enlace: var(--ph-navy-600);
+
+  /* --- Tipografía -------------------------------------------------------- */
+  --ph-fuente: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ph-fuente-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --ph-txt-xs: 0.75rem;    /* 12px: metadatos, nunca texto esencial */
+  --ph-txt-sm: 0.875rem;   /* 14px: tablas, etiquetas */
+  --ph-txt-md: 1rem;       /* 16px: cuerpo */
+  --ph-txt-lg: 1.125rem;   /* 18px */
+  --ph-txt-xl: 1.375rem;   /* 22px: título de sección */
+  --ph-txt-2xl: 1.75rem;   /* 28px: título de página */
+  --ph-txt-cifra: 2rem;    /* 32px: valor de un indicador */
+
+  --ph-peso-normal: 400;
+  --ph-peso-medio: 500;
+  --ph-peso-fuerte: 600;
+  --ph-peso-negrita: 700;
+
+  --ph-linea-apretada: 1.25;
+  --ph-linea: 1.5;
+
+  /* --- Espaciado: escala de 4 px ---------------------------------------- */
+  --ph-esp-1: 0.25rem;
+  --ph-esp-2: 0.5rem;
+  --ph-esp-3: 0.75rem;
+  --ph-esp-4: 1rem;
+  --ph-esp-5: 1.25rem;
+  --ph-esp-6: 1.5rem;
+  --ph-esp-8: 2rem;
+  --ph-esp-10: 2.5rem;
+  --ph-esp-12: 3rem;
+
+  /* --- Radios y sombras -------------------------------------------------- */
+  --ph-radio-sm: 4px;
+  --ph-radio: 8px;
+  --ph-radio-lg: 12px;
+  --ph-radio-pill: 999px;
+
+  --ph-sombra-1: 0 1px 2px rgba(13, 27, 43, 0.06), 0 1px 3px rgba(13, 27, 43, 0.08);
+  --ph-sombra-2: 0 4px 6px -1px rgba(13, 27, 43, 0.1), 0 2px 4px -2px rgba(13, 27, 43, 0.08);
+  --ph-sombra-3: 0 12px 24px -6px rgba(13, 27, 43, 0.18);
+
+  /* --- Accesibilidad ----------------------------------------------------- */
+  /* WCAG 2.2 AA, criterio 2.5.8: 24 px es el mínimo; 44 px es el cómodo en
+     pantalla táctil y es el que se usa en todo control interactivo. */
+  --ph-objetivo-min: 44px;
+  --ph-foco-color: var(--ph-teal-500);
+  --ph-foco-grosor: 3px;
+  --ph-foco-separacion: 2px;
+
+  /* --- Disposición ------------------------------------------------------- */
+  --ph-ancho-contenido: 1100px;
+  --ph-alto-navbar: 60px;
+  --ph-ancho-sidebar: 220px;
+  --ph-transicion: 160ms ease;
+}

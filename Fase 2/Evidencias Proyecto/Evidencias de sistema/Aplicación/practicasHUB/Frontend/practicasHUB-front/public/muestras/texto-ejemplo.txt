@@ -1,0 +1,5 @@
+Muestra de PracticasHub
+
+Este archivo existe para comprobar la vista previa de texto plano sin backend.
+Los archivos que suba una persona durante la sesion usan URL.createObjectURL y no
+sobreviven a una recarga; estas muestras si, porque se sirven desde public/.

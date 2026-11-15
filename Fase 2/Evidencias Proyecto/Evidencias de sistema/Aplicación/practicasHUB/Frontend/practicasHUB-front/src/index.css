@@ -1,0 +1,11 @@
+/**
+ * Punto de entrada de los estilos, importado desde `main.jsx`.
+ *
+ * Aquí no se escribe nada: los valores están en `styles/tokens.css` y las clases de los
+ * componentes en `styles/base.css`. Antes este archivo tenía la plantilla de Vite
+ * (acento morado, `.counter`, `.hero`), que no tenía relación con PrácticasHub.
+ */
+
+@import './styles/tokens.css';
+@import './styles/base.css';
+@import './styles/registro.css';
