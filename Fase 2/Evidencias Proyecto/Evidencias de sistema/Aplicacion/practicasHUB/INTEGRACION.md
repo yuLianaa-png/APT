@@ -94,3 +94,74 @@ Después de actualizar, **cierra sesión y vuelve a entrar** para que se guarde 
 - El historial de solicitudes de corrección guarda solo la vigente por jornada.
 - `src/api/axiosConfig.js` no lo usa nadie (el cliente real es `src/services/api.js`).
 - Respaldo de todo el código anterior: `_respaldo_antes_integracion.tar.gz`.
+
+## Seguridad (control de acceso)
+
+### Cómo funciona
+1. El **api-gateway** valida el JWT y agrega `X-User-Id` y `X-User-Role` a cada petición
+   (sobrescribe cualquier valor que mande el cliente).
+2. Cada microservicio **toma la identidad solo de esas cabeceras**, nunca de la URL ni del cuerpo,
+   y comprueba que el recurso sea del usuario:
+   - Estudiante → solo sus inscripciones, jornadas, evidencias, entregas y notificaciones.
+   - Docente → solo los grupos que creó y lo que hay dentro de ellos.
+3. Los endpoints **internos** (los que se llaman entre microservicios por Feign) rechazan
+   cualquier petición que traiga `X-User-Id`, porque eso significa que vino de un usuario.
+4. En `docker-compose.yml` **solo el gateway publica su puerto (8080)**. Los microservicios usan
+   `expose`, así que no se puede llegar a ellos saltándose el gateway. Esto es lo que hace seguro
+   el punto 3: si los puertos estuvieran publicados, cualquiera podría inventar las cabeceras.
+
+> Para probar un microservicio directo con Postman, cambia temporalmente su `expose` por
+> `ports`. No lo dejes así al desplegar.
+
+### Qué se corrigió
+| Problema | Dónde |
+|---|---|
+| Cualquier usuario podía leer las notificaciones de otro cambiando el id en la URL | notification-service |
+| Cualquier usuario podía crear notificaciones falsas (`/send`, `/send-bulk`) | notification-service |
+| Ver entregas y evidencias de otro estudiante; adjuntar evidencias o entregar a nombre de otro | document-service |
+| Un docente podía publicar, reemplazar o pedir corrección en grupos ajenos | document-service |
+| Sin cabecera de rol, varias rutas asumían `PROFESOR` (`defaultValue`) | document / practice |
+| `toggle-status` tomaba el docente de la URL: se podía activar/desactivar un grupo ajeno | practice-service |
+| `GET /groups/{id}` mostraba el **código de vinculación** de cualquier grupo | practice-service |
+| Los puertos 8081–8084 estaban publicados y permitían saltarse el gateway | docker-compose |
+
+### Endpoints internos nuevos (solo entre microservicios)
+- `GET /api/enrollments/{enrollmentId}/group-id`
+- `GET /api/logs/{logId}/enrollment-id`
+- `GET /api/logs/enrollment/{enrollmentId}/ids`
+
+`GET /api/documents/evidence/batch` se reemplazó por `GET /api/documents/evidence/enrollment/{enrollmentId}`.
+
+### Datos personales (minimización)
+`GET /api/users/{id}` solo responde con **tu propio perfil** (o a los otros microservicios). Los
+nombres y correos de los demás llegan dentro de respuestas que ya están autorizadas:
+
+| Respuesta | Incluye | Quién la puede ver |
+|---|---|---|
+| `GET /api/enrollments/group/{id}/students` | `studentName`, `studentEmail` | Solo el docente del grupo |
+| `GET /api/enrollments/my-enrollments` | `professorName` | Solo el propio estudiante |
+| `GET /api/enrollments/preview/{code}` | `professorName` | Quien tiene el código |
+| `GET /api/groups/{id}`, `my-groups` | `professorName` (`@Transient`, no se guarda) | Docente dueño o estudiantes vinculados |
+
+Así el correo de un estudiante solo lo ve su docente, y el front ya no hace una llamada por cada nombre.
+
+## Alertas de riesgo
+
+El docente ve un semáforo por estudiante (**Al día / Requiere atención / En riesgo**) en la sección
+Estudiantes, en el resumen del grupo y en el detalle de cada estudiante. Además recibe un aviso
+diario (lunes a viernes, 09:00 hora de Chile) por cada grupo que tenga estudiantes con alertas.
+
+| Regla | Requiere atención | En riesgo |
+|---|---|---|
+| Días sin registrar jornadas | 4 o más | 7 o más |
+| Ritmo (solo si el grupo tiene **fecha de término**) | Al ritmo actual no llega a la meta | Llega a menos del 80 % de la meta, o el periodo terminó sin alcanzarla |
+| Solicitud de corrección sin responder | Más de 2 días | — |
+
+- Si el estudiante ya alcanzó la meta, o el grupo está inactivo, no se evalúan inactividad ni ritmo.
+- La primera semana tras vincularse no se evalúa el ritmo (evita falsas alarmas).
+- Los umbrales están en `PracticeRiskService` (backend) y en `utils/riesgo.js` (datos simulados).
+  **Si se cambia uno, hay que cambiarlo en los dos.**
+
+Backend: `PracticeRiskService` (reglas), `RiskAlertService` (aviso diario, `@EnableScheduling`),
+`PracticeGroup.endDate`, `PracticeLog.correctionRequestedAt`, `PUT /api/groups/{id}/end-date`, y los
+campos `lastLogDate`, `riskLevel`, `riskReasons` en el padrón.
