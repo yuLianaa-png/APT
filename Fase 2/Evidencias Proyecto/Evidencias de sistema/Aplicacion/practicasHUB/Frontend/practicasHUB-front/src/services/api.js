@@ -27,10 +27,16 @@ api.interceptors.request.use(
  * texto plano (`ResponseEntity.badRequest().body("...")`), `{ message }` (los
  * GlobalExceptionHandler) o `{ mensaje }`.
  */
+const SERVIDOR_INICIANDO = 'El servidor está iniciando. Intenta nuevamente en un minuto.';
+
 const mensajeDelError = (error) => {
   if (!error.response) {
-    return 'No se pudo conectar con el servidor. Revisa que el backend (API Gateway en el puerto 8080) esté levantado.';
+    return 'No se pudo conectar con el servidor. Revisa tu conexión e intenta nuevamente en un minuto.';
   }
+
+  // 502, 503 y 504 los responde el hosting (Render) mientras un servicio despierta o se
+  // reinicia: el cuerpo es su página HTML de error, que no sirve para el usuario.
+  if ([502, 503, 504].includes(error.response.status)) return SERVIDOR_INICIANDO;
 
   const cuerpo = error.response.data;
   let texto = '';
@@ -40,6 +46,8 @@ const mensajeDelError = (error) => {
   // Los GlobalExceptionHandler anteponen este prefijo a los errores no controlados.
   texto = String(texto).replace(/^Ocurrió un error interno en el servidor:\s*/i, '').trim();
 
+  // Una página HTML nunca es un mensaje para mostrar.
+  if (/^\s*<(!doctype|html)/i.test(texto)) return SERVIDOR_INICIANDO;
   if (texto) return texto;
   if (error.response.status === 401) return 'Tu sesión expiró. Vuelve a iniciar sesión.';
   if (error.response.status === 403) return 'No tienes permiso para realizar esta acción.';
