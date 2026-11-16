@@ -35,7 +35,16 @@ envVarGroups:
   - name: practicashub-java
     envVars:
       - key: JAVA_TOOL_OPTIONS
-        value: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss256k"
+        value: "-Xmx200m -Xss256k -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=32m -XX:MaxDirectMemorySize=32m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+      # Menos conexiones e hilos: cada uno ocupa memoria y el plan gratis da 512 MB
+      - key: SPRING_DATASOURCE_HIKARI_MAXIMUMPOOLSIZE
+        value: "3"
+      - key: SPRING_DATASOURCE_HIKARI_MINIMUMIDLE
+        value: "1"
+      - key: SERVER_TOMCAT_THREADS_MAX
+        value: "20"
+      - key: SPRING_JPA_OPEN_IN_VIEW
+        value: "false"
 
 services:
   # ------------------------------------------------------------------ API Gateway
