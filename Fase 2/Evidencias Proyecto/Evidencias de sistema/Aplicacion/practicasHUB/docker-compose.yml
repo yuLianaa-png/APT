@@ -1,0 +1,63 @@
+services:
+  # MICROSERVICIOS
+  # microservicio de autenticacion
+  auth-service:
+    build: ./auth-service
+    container_name: practicahub-auth
+    expose:
+      - "8081"
+    env_file:
+      - .env
+
+  # microservico principal practica
+  practice-service:
+    build:
+      context: ./practice-service
+      dockerfile: Dockerfile
+    container_name: practicahub-practice
+    expose:
+      - "8082"
+    env_file:
+      - .env
+
+  #apigateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: practicahub-gateway
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+
+  #microservicio de documentos
+  document-service:
+    build:
+      context: ./document-service
+    container_name: practicahub-document
+    expose:
+      - "8083"
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/app/uploads
+
+  #microservicio notificaciones
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: practicahub-notification
+    expose:
+      - "8084"
+    env_file:
+      - .env
+
+#REDES
+networks:
+  default:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: "2001:3200:3200::/64"

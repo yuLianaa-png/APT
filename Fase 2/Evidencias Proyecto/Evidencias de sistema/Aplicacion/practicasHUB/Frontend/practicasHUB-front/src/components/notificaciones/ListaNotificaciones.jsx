@@ -1,0 +1,110 @@
+import { Boton, EstadoVacio } from '../ui';
+import { ETIQUETAS, TIPO_NOTIFICACION } from '../../utils/constants';
+import { formatearInstante } from '../../utils/fechas';
+
+
+
+ /// Lista de notificaciones, compartida por la bandeja general y la del grupo.
+
+
+/** Un signo por tipo. Es refuerzo: el mensaje ya dice qué pasó. */
+const SIGNOS = {
+  [TIPO_NOTIFICACION.SOLICITUD_ENVIADA]: '?',
+  [TIPO_NOTIFICACION.CORRECCION_HABILITADA]: '✎',
+  [TIPO_NOTIFICACION.CORRECCION_GUARDADA]: '✓',
+  [TIPO_NOTIFICACION.SOLICITUD_RECHAZADA]: '✕',
+  [TIPO_NOTIFICACION.DOCUMENTO_PUBLICADO]: '+',
+  [TIPO_NOTIFICACION.DOCUMENTO_ACTUALIZADO]: '↻',
+  [TIPO_NOTIFICACION.REEMPLAZO_HABILITADO]: '✎',
+  [TIPO_NOTIFICACION.ENTREGA_RECIBIDA]: '↓',
+  [TIPO_NOTIFICACION.ESTUDIANTE_VINCULADO]: '+',
+  [TIPO_NOTIFICACION.JORNADA_REGISTRADA]: '+',
+  [TIPO_NOTIFICACION.JORNADA_EDITADA]: '✎',
+  [TIPO_NOTIFICACION.GRUPO_DESACTIVADO]: '■',
+  [TIPO_NOTIFICACION.GRUPO_REACTIVADO]: '▶',
+  [TIPO_NOTIFICACION.GRUPO_ELIMINADO]: '✕',
+  [TIPO_NOTIFICACION.ALERTAS_RIESGO]: '!',
+};
+
+const TONOS = {
+  [TIPO_NOTIFICACION.SOLICITUD_ENVIADA]: 'espera',
+  [TIPO_NOTIFICACION.CORRECCION_HABILITADA]: 'info',
+  [TIPO_NOTIFICACION.CORRECCION_GUARDADA]: 'exito',
+  [TIPO_NOTIFICACION.SOLICITUD_RECHAZADA]: 'error',
+  [TIPO_NOTIFICACION.REEMPLAZO_HABILITADO]: 'info',
+  [TIPO_NOTIFICACION.ENTREGA_RECIBIDA]: 'exito',
+  [TIPO_NOTIFICACION.ESTUDIANTE_VINCULADO]: 'exito',
+  [TIPO_NOTIFICACION.JORNADA_REGISTRADA]: 'info',
+  [TIPO_NOTIFICACION.JORNADA_EDITADA]: 'info',
+  [TIPO_NOTIFICACION.GRUPO_DESACTIVADO]: 'espera',
+  [TIPO_NOTIFICACION.GRUPO_REACTIVADO]: 'exito',
+  [TIPO_NOTIFICACION.GRUPO_ELIMINADO]: 'error',
+  [TIPO_NOTIFICACION.ALERTAS_RIESGO]: 'espera',
+};
+
+const ListaNotificaciones = ({
+  notificaciones,
+  mostrarGrupo = false,
+  alVer,
+  abriendo = null,
+  vacio = null,
+}) => {
+  if (notificaciones.length === 0) {
+    return vacio ?? (
+      <EstadoVacio titulo="No tienes novedades">
+        Aquí aparecerán las solicitudes, correcciones, documentos y entregas a medida que
+        ocurran.
+      </EstadoVacio>
+    );
+  }
+
+  return (
+    <ul className="ph-notificaciones">
+      {notificaciones.map((aviso) => {
+        const tono = TONOS[aviso.tipo] ?? 'neutro';
+
+        return (
+          <li key={aviso.id} className="ph-notificacion">
+            <span
+              className={`ph-notificacion__signo ph-notificacion__signo--${tono}`}
+              aria-hidden="true"
+            >
+              {SIGNOS[aviso.tipo] ?? '·'}
+            </span>
+
+            <div className="ph-notificacion__cuerpo">
+              {/* §9: el grupo de origen, antes de navegar. */}
+              {mostrarGrupo && (
+                <p className="ph-notificacion__origen">
+                  <strong>{aviso.grupoNombre}</strong>
+                  <code>{aviso.grupoCodigo}</code>
+                </p>
+              )}
+
+              <p className="ph-notificacion__tipo">
+                {ETIQUETAS.TIPO_NOTIFICACION[aviso.tipo] ?? 'Novedad'}
+                {aviso.leida === false && <span className="ph-notificacion__nueva">Nueva</span>}
+              </p>
+              <p className="ph-notificacion__mensaje">{aviso.mensaje}</p>
+              <p className="ph-campo__ayuda">{formatearInstante(aviso.creadaEn)}</p>
+            </div>
+
+            {/* Sin referencia (por ejemplo, un grupo eliminado) no hay nada que abrir. */}
+            {aviso.referencia && (
+              <Boton
+                variante="secundario"
+                tamano="pequeno"
+                disabled={abriendo === aviso.id}
+                onClick={() => alVer(aviso)}
+              >
+                {abriendo === aviso.id ? 'Abriendo…' : 'Ver'}
+              </Boton>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
+
+export default ListaNotificaciones;
