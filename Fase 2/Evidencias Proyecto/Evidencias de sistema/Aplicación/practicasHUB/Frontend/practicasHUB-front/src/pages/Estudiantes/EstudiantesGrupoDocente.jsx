@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useGrupo } from '../../context/useGrupo';
 import { grupoService } from '../../services';
-import { normalizar } from '../../utils/filtros';
+import { TODOS, normalizar } from '../../utils/filtros';
+import { NIVEL_RIESGO } from '../../utils/constants';
 import { formatearHoras } from '../../utils/horas';
 import {
-  Aviso, Cargando, EstadoError, EstadoVacio, Filtros,
+  Aviso, Cargando, EstadoError, EstadoVacio, Filtros, InsigniaEstado,
 } from '../../components/ui';
 import TablaEstudiantes from '../../components/estudiantes/TablaEstudiantes';
 
@@ -17,6 +18,7 @@ const COLUMNAS = [
   { clave: 'horas', titulo: 'Horas', numerica: true },
   { clave: 'jornadas', titulo: 'Jornadas', numerica: true },
   { clave: 'progreso', titulo: 'Progreso', numerica: true },
+  { clave: 'alertas', titulo: 'Alertas' },
   { clave: 'accion', titulo: 'Acción', acciones: true },
 ];
 
@@ -24,6 +26,7 @@ const EstudiantesGrupoDocente = () => {
   const { grupo } = useGrupo();
   const [estado, setEstado] = useState({ padron: [], cargando: true, error: null });
   const [nombre, setNombre] = useState('');
+  const [alerta, setAlerta] = useState(TODOS);
 
   const cargar = useCallback(() => {
     let vigente = true;
@@ -47,10 +50,13 @@ const EstudiantesGrupoDocente = () => {
 
   const visibles = useMemo(() => {
     const buscado = normalizar(nombre);
-    if (!buscado) return estado.padron;
-    return estado.padron.filter((fila) => normalizar(fila.nombre).includes(buscado)
-      || normalizar(fila.correo).includes(buscado));
-  }, [estado.padron, nombre]);
+    return estado.padron
+      .filter((fila) => !buscado || normalizar(fila.nombre).includes(buscado)
+        || normalizar(fila.correo).includes(buscado))
+      // «Requieren atención» incluye tanto a los en riesgo como a los que piden atención.
+      .filter((fila) => alerta === TODOS
+        || (fila.riesgo?.nivel ?? NIVEL_RIESGO.SIN_ALERTA) !== NIVEL_RIESGO.SIN_ALERTA);
+  }, [estado.padron, nombre, alerta]);
 
   if (estado.cargando) return <Cargando mensaje="Cargando los estudiantes…" />;
   if (estado.error) return <EstadoError mensaje={estado.error} alReintentar={cargar} />;
@@ -83,6 +89,16 @@ const EstudiantesGrupoDocente = () => {
             ejemplo: 'Yuliana o @duocuc.cl',
             alCambiar: setNombre,
           },
+          {
+            clave: 'alerta',
+            etiqueta: 'Alertas',
+            valor: alerta,
+            alCambiar: setAlerta,
+            opciones: [
+              { valor: TODOS, etiqueta: 'Todos' },
+              { valor: 'CON_ALERTA', etiqueta: 'Requieren atención' },
+            ],
+          },
         ]}
       />
 
@@ -91,7 +107,21 @@ const EstudiantesGrupoDocente = () => {
         estudiantes={visibles}
         grupo={grupo}
         columnas={COLUMNAS}
-        celdaExtra={(fila, columna) => (columna.clave === 'progreso' ? `${fila.porcentaje}%` : null)}
+        celdaExtra={(fila, columna) => {
+          if (columna.clave === 'progreso') return `${fila.porcentaje}%`;
+          if (columna.clave === 'alertas') {
+            const riesgo = fila.riesgo ?? { nivel: NIVEL_RIESGO.SIN_ALERTA, motivos: [] };
+            return (
+              <span className="ph-celda-principal">
+                <InsigniaEstado tipo="riesgo" estado={riesgo.nivel} />
+                {riesgo.motivos.length > 0 && (
+                  <span className="ph-campo__ayuda">{riesgo.motivos.join(' ')}</span>
+                )}
+              </span>
+            );
+          }
+          return null;
+        }}
         accion={(fila) => (
           <Link
             className="ph-boton ph-boton--pequeno"
@@ -100,9 +130,11 @@ const EstudiantesGrupoDocente = () => {
             Ver estudiante
           </Link>
         )}
-        vacio={nombre.trim() ? (
+        vacio={nombre.trim() || alerta !== TODOS ? (
           <EstadoVacio titulo="Ningún estudiante coincide con esa búsqueda">
-            Prueba con parte del nombre o del correo.
+            {alerta !== TODOS
+              ? 'Ningún estudiante tiene alertas en este momento.'
+              : 'Prueba con parte del nombre o del correo.'}
           </EstadoVacio>
         ) : (
           <EstadoVacio titulo="Todavía no hay estudiantes vinculados">

@@ -39,10 +39,20 @@ public class NotificationService {
     }
 
     public void markAllAsRead(Long userId) {
-        List<Notification> unreadDocs = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
-                .stream()
-                .filter(n -> !n.getRead())
-                .toList();
+        List<Notification> unreadDocs = notificationRepository.findByUserIdAndReadFalse(userId);
+
+        unreadDocs.forEach(n -> n.setRead(true));
+        notificationRepository.saveAll(unreadDocs);
+    }
+
+    //contador de la campanita dentro de un grupo
+    public long getGroupUnreadCount(Long userId, Long groupId) {
+        return notificationRepository.countByUserIdAndGroupIdAndReadFalse(userId, groupId);
+    }
+
+    //marca como leidas solo las notificaciones de ese grupo
+    public void markGroupAsRead(Long userId, Long groupId) {
+        List<Notification> unreadDocs = notificationRepository.findByUserIdAndGroupIdAndReadFalse(userId, groupId);
 
         unreadDocs.forEach(n -> n.setRead(true));
         notificationRepository.saveAll(unreadDocs);

@@ -3,11 +3,11 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/useAuth';
 import { useGrupo } from '../../context/useGrupo';
 import { documentoService, grupoService } from '../../services';
-import { ESTADO_ENTREGA, TIPO_DOCUMENTO } from '../../utils/constants';
+import { ESTADO_ENTREGA, NIVEL_RIESGO, TIPO_DOCUMENTO } from '../../utils/constants';
 import { formatearFecha, formatearInstante } from '../../utils/fechas';
 import { formatearHoras } from '../../utils/horas';
 import {
-  Boton, Cargando, EstadoError, EstadoVacio, Indicador, Indicadores, InsigniaEstado, Tabla,
+  Aviso, Boton, Cargando, EstadoError, EstadoVacio, Indicador, Indicadores, InsigniaEstado, Tabla,
 } from '../../components/ui';
 import { DescargarArchivo } from '../../components/archivos';
 import { baseDeGrupo } from '../../routes/navegacion';
@@ -116,6 +116,16 @@ const DetalleEstudianteGrupo = () => {
           ← Volver a estudiantes
         </Link>
       </div>
+
+      {/* Alertas del estudiante: a qué conviene prestarle atención. */}
+      {estudiante.riesgo && estudiante.riesgo.nivel !== NIVEL_RIESGO.SIN_ALERTA && (
+        <Aviso
+          tono={estudiante.riesgo.nivel === NIVEL_RIESGO.RIESGO ? 'error' : 'espera'}
+          titulo={estudiante.riesgo.nivel === NIVEL_RIESGO.RIESGO ? 'Estudiante en riesgo' : 'Requiere atención'}
+        >
+          {estudiante.riesgo.motivos.join(' ')}
+        </Aviso>
+      )}
 
       {/* Jornadas lleva al historial individual, que ya tiene las acciones de revisión. */}
       <div className="ph-fila">

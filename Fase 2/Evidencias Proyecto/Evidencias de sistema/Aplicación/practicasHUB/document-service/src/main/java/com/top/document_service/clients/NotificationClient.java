@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@FeignClient(name = "notification-service", url = "http://practicahub-notification:8084")
+@FeignClient(name = "notification-service", url = "${services.notification.url}")
 public interface NotificationClient {
     @PostMapping("/api/notifications/send-bulk")
     void sendBulkNotification(

@@ -236,6 +236,7 @@ public class PracticeLogService {
 
         log.setCorrectionReason(reason);
         log.setRequestStatus("Pendiente");
+        log.setCorrectionRequestedAt(LocalDateTime.now());
 
         PracticeLog savedLog = logRepository.save(log);
 
@@ -315,6 +316,19 @@ public class PracticeLogService {
                 .orElseThrow(() -> new IllegalArgumentException("Jornada no encontrada"));
         checkEnrollmentAccess(log.getIdEnrollment(), userId, role);
         return log;
+    }
+
+    //consultas internas para document-service
+    public Long getEnrollmentIdByLog(Long logId) {
+        return logRepository.findById(logId)
+                .orElseThrow(() -> new IllegalArgumentException("Jornada no encontrada"))
+                .getIdEnrollment();
+    }
+
+    public List<Long> getLogIdsByEnrollment(Long enrollmentId) {
+        return logRepository.findByIdEnrollment(enrollmentId).stream()
+                .map(PracticeLog::getLogId)
+                .toList();
     }
 
     //el estudiante solo accede a sus inscripciones y el docente solo a las de sus grupos

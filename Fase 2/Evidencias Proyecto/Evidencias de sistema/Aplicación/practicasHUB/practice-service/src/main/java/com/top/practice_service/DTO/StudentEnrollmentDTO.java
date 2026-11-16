@@ -26,4 +26,5 @@ public class StudentEnrollmentDTO {
     private int totalLogs;
     private int pendingRequests;
     private LocalDateTime groupCreationDate;
+    private String professorName;
 }

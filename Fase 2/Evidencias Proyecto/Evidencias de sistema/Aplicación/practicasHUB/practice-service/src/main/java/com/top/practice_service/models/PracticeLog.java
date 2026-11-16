@@ -42,6 +42,10 @@ public class PracticeLog {
     @Column(name = "correction_reason", columnDefinition = "TEXT")
     private String correctionReason;
 
+    //cuando el estudiante pidio la correccion: permite saber cuantos dias lleva esperando
+    @Column(name = "correction_requested_at")
+    private LocalDateTime correctionRequestedAt;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

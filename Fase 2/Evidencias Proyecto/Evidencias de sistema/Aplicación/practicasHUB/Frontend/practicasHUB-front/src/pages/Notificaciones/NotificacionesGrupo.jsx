@@ -6,6 +6,7 @@ import { jornadaService, notificacionService } from '../../services';
 import { destinoDe, necesitaVinculacion } from '../../utils/rutasNotificacion';
 import { Aviso, Cargando, EstadoError, EstadoVacio } from '../../components/ui';
 import ListaNotificaciones from '../../components/notificaciones/ListaNotificaciones';
+import { avisarNotificacionesLeidas } from '../../hooks/useNoLeidas';
 
 // Página de notificaciones del grupo. Se accede desde el menú lateral del grupo, y muestra todas las novedades de la práctica, sin importar el estudiante.
 
@@ -22,7 +23,13 @@ const NotificacionesGrupo = () => {
     let vigente = true;
 
     notificacionService.delGrupo(usuario.id, grupo.id)
-      .then((avisos) => { if (vigente) setEstado({ avisos, cargando: false, error: null }); })
+      .then((avisos) => {
+        if (vigente) setEstado({ avisos, cargando: false, error: null });
+        // Solo se marcan como leídas las de este grupo.
+        notificacionService.marcarLeidas(usuario.id, grupo.id)
+          .then(avisarNotificacionesLeidas)
+          .catch(() => {});
+      })
       .catch((fallo) => {
         if (vigente) {
           setEstado({

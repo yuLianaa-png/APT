@@ -1,0 +1,141 @@
+# Blueprint de Render para PrácticasHub (plan gratis).
+# Crea los 5 microservicios (Docker) y el front (sitio estático) de una vez:
+#   Render → New → Blueprint → elegir este repositorio.
+#
+# ESTE ARCHIVO VA EN LA RAÍZ DEL REPOSITORIO (la carpeta APT, donde está .git).
+# Las rutas rootDir parten desde ahí.
+#
+# IMPORTANTE: las URLs de abajo asumen que Render asigna exactamente estos nombres
+# (https://<name>.onrender.com). Si alguno ya existe, Render le agrega un sufijo
+# (por ejemplo practicashub-auth-x1y2): en ese caso hay que corregir las variables *_URL.
+# Ver DESPLIEGUE.md.
+
+envVarGroups:
+  # Secretos compartidos entre servicios. Render los genera solos (256 bits).
+  - name: practicashub-secretos
+    envVars:
+      - key: JWT_SECRET          # firma de los tokens (auth-service y api-gateway)
+        generateValue: true
+      - key: INTERNAL_SECRET     # clave entre el gateway y los microservicios
+        generateValue: true
+
+  # Datos de Supabase: se ingresan a mano al crear el Blueprint (no van en el repo).
+  - name: practicashub-supabase
+    envVars:
+      - key: SUPABASE_PASSWORD
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY        # la service_role (empieza con eyJ)
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: practicahub-files
+
+  # Java ajustado a 512 MB y 0,1 CPU: menos memoria y arranque más rápido.
+  - name: practicashub-java
+    envVars:
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss256k"
+
+services:
+  # ------------------------------------------------------------------ API Gateway
+  - type: web
+    name: practicashub-gateway
+    runtime: docker
+    plan: free
+    region: oregon               # misma zona que la base de datos de Supabase (us-west-2)
+    rootDir: "Fase 2/Evidencias Proyecto/Evidencias de sistema/Aplicación/practicasHUB/api-gateway"
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - fromGroup: practicashub-secretos
+      - fromGroup: practicashub-java
+      - key: AUTH_SERVICE_URL
+        value: https://practicashub-auth.onrender.com
+      - key: PRACTICE_SERVICE_URL
+        value: https://practicashub-practice.onrender.com
+      - key: DOCUMENT_SERVICE_URL
+        value: https://practicashub-document.onrender.com
+      - key: NOTIFICATION_SERVICE_URL
+        value: https://practicashub-notification.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://practicashub-front.onrender.com
+
+  # ------------------------------------------------------------------ Auth
+  - type: web
+    name: practicashub-auth
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: "Fase 2/Evidencias Proyecto/Evidencias de sistema/Aplicación/practicasHUB/auth-service"
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - fromGroup: practicashub-secretos
+      - fromGroup: practicashub-supabase
+      - fromGroup: practicashub-java
+
+  # ------------------------------------------------------------------ Prácticas
+  - type: web
+    name: practicashub-practice
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: "Fase 2/Evidencias Proyecto/Evidencias de sistema/Aplicación/practicasHUB/practice-service"
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - fromGroup: practicashub-secretos
+      - fromGroup: practicashub-supabase
+      - fromGroup: practicashub-java
+      - key: AUTH_SERVICE_URL
+        value: https://practicashub-auth.onrender.com
+      - key: NOTIFICATION_SERVICE_URL
+        value: https://practicashub-notification.onrender.com
+
+  # ------------------------------------------------------------------ Documentos
+  - type: web
+    name: practicashub-document
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: "Fase 2/Evidencias Proyecto/Evidencias de sistema/Aplicación/practicasHUB/document-service"
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - fromGroup: practicashub-secretos
+      - fromGroup: practicashub-supabase
+      - fromGroup: practicashub-java
+      - key: AUTH_SERVICE_URL
+        value: https://practicashub-auth.onrender.com
+      - key: PRACTICE_SERVICE_URL
+        value: https://practicashub-practice.onrender.com
+      - key: NOTIFICATION_SERVICE_URL
+        value: https://practicashub-notification.onrender.com
+
+  # ------------------------------------------------------------------ Notificaciones
+  - type: web
+    name: practicashub-notification
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: "Fase 2/Evidencias Proyecto/Evidencias de sistema/Aplicación/practicasHUB/notification-service"
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - fromGroup: practicashub-secretos
+      - fromGroup: practicashub-supabase
+      - fromGroup: practicashub-java
+
+  # ------------------------------------------------------------------ Front (React + Vite)
+  - type: web
+    name: practicashub-front
+    runtime: static
+    rootDir: "Fase 2/Evidencias Proyecto/Evidencias de sistema/Aplicación/practicasHUB/Frontend/practicasHUB-front"
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    # React Router: cualquier ruta (/docente/dashboard, etc.) se sirve con index.html
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://practicashub-gateway.onrender.com/api
+      - key: VITE_USAR_MOCKS
+        value: "false"

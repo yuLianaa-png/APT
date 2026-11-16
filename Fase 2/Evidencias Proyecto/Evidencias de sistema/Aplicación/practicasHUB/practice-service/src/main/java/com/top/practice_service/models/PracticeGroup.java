@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -39,4 +40,12 @@ public class PracticeGroup {
     private Long totalHours;
 
     private LocalDateTime creationDate = LocalDateTime.now();
+
+    //fecha de termino de la practica (opcional): permite estimar si el ritmo alcanza la meta
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    //no se guarda en la base de datos, solo se completa al responder
+    @Transient
+    private String professorName;
 }

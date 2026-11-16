@@ -4,6 +4,7 @@ import {
   ESTADO_JORNADA,
   ESTADO_SOLICITUD,
   ETIQUETAS,
+  NIVEL_RIESGO,
   TIPO_DOCUMENTO,
 } from '../../utils/constants';
 
@@ -36,6 +37,12 @@ const TONOS = {
     [TIPO_DOCUMENTO.INFORMATIVO]: 'neutro',
     [TIPO_DOCUMENTO.REQUIERE_ENTREGA]: 'info',
   },
+  // Semáforo de alertas del estudiante.
+  riesgo: {
+    [NIVEL_RIESGO.SIN_ALERTA]: 'exito',
+    [NIVEL_RIESGO.ATENCION]: 'espera',
+    [NIVEL_RIESGO.RIESGO]: 'error',
+  },
 };
 
 const CLAVES_ETIQUETA = {
@@ -44,10 +51,11 @@ const CLAVES_ETIQUETA = {
   solicitud: 'ESTADO_SOLICITUD',
   entrega: 'ESTADO_ENTREGA',
   documento: 'TIPO_DOCUMENTO',
+  riesgo: 'NIVEL_RIESGO',
 };
 
 /**
- * @param {'grupo'|'jornada'|'solicitud'|'entrega'|'documento'} tipo
+ * @param {'grupo'|'jornada'|'solicitud'|'entrega'|'documento'|'riesgo'} tipo
  * @param {string} estado valor del enum correspondiente
  * @param {string} [prefijo] texto antes de la etiqueta, p. ej. «Solicitud»
  */

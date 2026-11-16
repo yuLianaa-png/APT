@@ -3,6 +3,7 @@ package com.top.practice_service.controllers;
 import com.top.practice_service.models.PracticeEnrollment;
 import com.top.practice_service.repositories.PracticeEnrollmentRepository;
 import com.top.practice_service.services.PracticeEnrollmentService;
+import com.top.practice_service.services.PracticeGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,12 @@ public class PracticeEnrollmentController {
     private PracticeEnrollmentService enrollmentService;
     @Autowired
     private PracticeEnrollmentRepository enrollmentRepository;
+    @Autowired
+    private PracticeGroupService practiceGroupService;
+
+    private boolean isExternalRequest(Long userId) {
+        return userId != null;
+    }
 
     @PostMapping("/join/{groupCode}")
     public ResponseEntity<?> enrollInGroup(@PathVariable String groupCode,
@@ -49,7 +56,7 @@ public class PracticeEnrollmentController {
         }
 
         try {
-            return ResponseEntity.ok(enrollmentService.previewGroup(groupCode, studentId));
+            return ResponseEntity.ok(practiceGroupService.withProfessorName(enrollmentService.previewGroup(groupCode, studentId)));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -67,8 +74,14 @@ public class PracticeEnrollmentController {
         return ResponseEntity.ok(enrollmentService.getStudentEnrollments(studentId));
     }
 
+    //lo usa el front (docente del grupo o estudiante vinculado) y los otros microservicios
     @GetMapping("/group/{groupId}/student-ids")
-    public ResponseEntity<List<Long>> getStudentIdsByGroup(@PathVariable Long groupId) {
+    public ResponseEntity<?> getStudentIdsByGroup(@PathVariable Long groupId,
+                                                  @RequestHeader(value = "X-User-Id", required = false) Long userId,
+                                                  @RequestHeader(value = "X-User-Role", required = false) String role) {
+        if (isExternalRequest(userId) && !practiceGroupService.canAccessGroup(groupId, userId, role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ACCESO DENEGADO: No tienes acceso a este grupo.");
+        }
         List<Long> studentIds = enrollmentRepository.findByPracticeGroupId(groupId)
                 .stream()
                 .map(PracticeEnrollment::getStudentId)
@@ -96,13 +109,26 @@ public class PracticeEnrollmentController {
         }
     }
 
+    //interno
     @GetMapping("/{enrollmentId}/student-id")
-    public ResponseEntity<Long> getStudentIdByEnrollment(@PathVariable Long enrollmentId) {
+    public ResponseEntity<Long> getStudentIdByEnrollment(@PathVariable Long enrollmentId,
+                                                         @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        if (isExternalRequest(userId)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         try {
             Long studentId = enrollmentService.getStudentIdByEnrollment(enrollmentId);
             return ResponseEntity.ok(studentId);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
+    }
+
+    //interno - grupo al que pertenece una inscripcion
+    @GetMapping("/{enrollmentId}/group-id")
+    public ResponseEntity<Long> getGroupIdByEnrollment(@PathVariable Long enrollmentId,
+                                                       @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        if (isExternalRequest(userId)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return enrollmentRepository.findById(enrollmentId)
+                .map(enrollment -> ResponseEntity.ok(enrollment.getPracticeGroupId()))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

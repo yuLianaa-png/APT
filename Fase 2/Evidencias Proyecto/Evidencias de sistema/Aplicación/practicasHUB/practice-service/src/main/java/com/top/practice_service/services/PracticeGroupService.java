@@ -1,5 +1,6 @@
 package com.top.practice_service.services;
 
+import com.top.practice_service.clients.AuthClient;
 import com.top.practice_service.clients.NotificationClient;
 import com.top.practice_service.models.PracticeEnrollment;
 import com.top.practice_service.models.PracticeGroup;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +26,31 @@ public class PracticeGroupService {
     private PracticeLogRepository logRepository;
     @Autowired
     private NotificationClient notificationClient;
+    @Autowired
+    private AuthClient authClient;
+
+    //nombre de un usuario; si auth-service no responde queda vacio y no se rompe nada
+    public String userName(Long userId) {
+        try {
+            return authClient.getUserById(userId).getName();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    //completa el nombre del docente antes de enviar el grupo al front
+    public PracticeGroup withProfessorName(PracticeGroup group) {
+        group.setProfessorName(userName(group.getIdProfessor()));
+        return group;
+    }
+
+    //todos los grupos de un docente: su nombre se busca una sola vez
+    public List<PracticeGroup> withProfessorName(List<PracticeGroup> groups) {
+        if (groups.isEmpty()) return groups;
+        String name = userName(groups.get(0).getIdProfessor());
+        groups.forEach(group -> group.setProfessorName(name));
+        return groups;
+    }
 
     //avisa a todos los estudiantes vinculados al grupo
     private void notifyStudents(PracticeGroup group, String type, String title, String message, Long referenceId) {
@@ -52,6 +79,9 @@ public class PracticeGroupService {
         }
         if (group.getMinimumHours() == null || group.getMinimumHours() <= 0) {
             throw new IllegalArgumentException("La meta mínima de horas es obligatoria y debe ser mayor a 0.");
+        }
+        if (group.getEndDate() != null && group.getEndDate().isBefore(LocalDate.now(java.time.ZoneId.of("America/Santiago")))) {
+            throw new IllegalArgumentException("La fecha de término no puede ser anterior a hoy.");
         }
 
         group.setIdProfessor(professorId);
@@ -105,6 +135,37 @@ public class PracticeGroupService {
         }
 
         return savedGroup;
+    }
+
+    //el docente solo accede a sus grupos y el estudiante solo a los grupos donde esta vinculado
+    public boolean canAccessGroup(Long groupId, Long userId, String role) {
+        PracticeGroup group = practiceGroupRepository.findById(groupId).orElse(null);
+        if (group == null || userId == null) return false;
+
+        if ("PROFESOR".equalsIgnoreCase(role)) {
+            return group.getIdProfessor().equals(userId);
+        }
+        if ("ESTUDIANTE".equalsIgnoreCase(role)) {
+            return enrollmentRepository.existsByPracticeGroupIdAndStudentId(groupId, userId);
+        }
+        return false;
+    }
+
+    //docente - define, cambia o quita (null) la fecha de termino de la practica
+    public PracticeGroup updateEndDate(Long groupId, Long professorId, LocalDate endDate) {
+        PracticeGroup group = practiceGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("El grupo no existe."));
+
+        if (!group.getIdProfessor().equals(professorId)) {
+            throw new SecurityException("ACCION DENEGADA: No eres el profesor de este grupo.");
+        }
+        if (endDate != null && group.getCreationDate() != null
+                && endDate.isBefore(group.getCreationDate().toLocalDate())) {
+            throw new IllegalArgumentException("La fecha de término no puede ser anterior a la creación del grupo.");
+        }
+
+        group.setEndDate(endDate);
+        return practiceGroupRepository.save(group);
     }
 
     public PracticeGroup getGroupById(Long groupId) {

@@ -30,6 +30,7 @@ import {
   ESTADO_GRUPO,
   ESTADO_JORNADA,
   ESTADO_SOLICITUD,
+  NIVEL_RIESGO,
   ROLES,
   STORAGE_KEYS,
   TIPO_DOCUMENTO,
@@ -81,29 +82,12 @@ const usuarioActual = () => {
 
 const esDocenteActual = () => usuarioActual()?.rol === ROLES.DOCENTE;
 
-/* -------------------------------------------------------------------- usuarios */
-
-/** Nombres de usuario en caché: los piden muchas pantallas y casi nunca cambian. */
-const cacheUsuarios = new Map();
-
-const usuarioPorId = (usuarioId) => {
-  const clave = id(usuarioId);
-  if (!clave) return Promise.resolve(null);
-
-  if (!cacheUsuarios.has(clave)) {
-    cacheUsuarios.set(
-      clave,
-      api.get(`/users/${clave}`).then(datos).catch(() => {
-        cacheUsuarios.delete(clave);
-        return null;
-      }),
-    );
-  }
-  return cacheUsuarios.get(clave);
-};
-
-const nombreDe = async (usuarioId, porDefecto = '') =>
-  (await usuarioPorId(usuarioId))?.name ?? porDefecto;
+/*
+ * Nombres de usuario: no se piden sueltos. El backend solo deja consultar el perfil
+ * propio (`/users/{id}`); los nombres de los demás llegan dentro de las respuestas que
+ * ya están autorizadas (padrón del grupo, inscripciones, grupo). Minimización de datos:
+ * cada nombre o correo aparece solo donde ya está justificado verlo.
+ */
 
 /* ------------------------------------------------------------------------ auth */
 
@@ -156,7 +140,7 @@ export const authHttp = {
 
   perfil: async () => {
     const actual = usuarioActual();
-    const usuario = await usuarioPorId(actual?.id);
+    const usuario = actual?.id ? await api.get(`/users/${actual.id}`).then(datos).catch(() => null) : null;
     if (!usuario) throw fallo(ERRORES.NO_AUTORIZADO, 'La sesión no es válida.');
     return {
       id: id(usuario.id), nombre: usuario.name, correo: usuario.email, rol: rolDelBackend(usuario.role),
@@ -183,9 +167,12 @@ const mapearGrupo = (grupo, extra = {}) => {
     metaMinimaHoras: Number(grupo.minimumHours) || 0,
     estado: estadoGrupo(grupo.status),
     docenteId: id(grupo.idProfessor),
-    docenteNombre: extra.docenteNombre ?? '',
+    // El backend completa el nombre del docente al responder (campo no guardado).
+    docenteNombre: grupo.professorName ?? '',
     creadoEn,
     anio: anioDelGrupo(creadoEn) ?? (Number(grupo.period) || null),
+    // 'YYYY-MM-DD' u null: permite estimar si el ritmo de cada estudiante alcanza la meta.
+    fechaTermino: grupo.endDate ?? null,
     totalEstudiantes: extra.totalEstudiantes ?? 0,
   };
 };
@@ -198,12 +185,15 @@ const idsDeEstudiantes = (grupoId) =>
     .catch(() => []);
 
 const completarGrupo = async (crudo) => {
-  const [docenteNombre, estudiantes] = await Promise.all([
-    nombreDe(crudo.idProfessor),
-    idsDeEstudiantes(crudo.idGroup),
-  ]);
-  return mapearGrupo(crudo, { docenteNombre, totalEstudiantes: estudiantes.length });
+  const estudiantes = await idsDeEstudiantes(crudo.idGroup);
+  return mapearGrupo(crudo, { totalEstudiantes: estudiantes.length });
 };
+
+/** riskLevel / riskReasons del padrón -> riesgo del front. */
+const riesgoDe = (fila) => ({
+  nivel: NIVEL_RIESGO[fila.riskLevel] ?? NIVEL_RIESGO.SIN_ALERTA,
+  motivos: fila.riskReasons ?? [],
+});
 
 /** Padrón del grupo tal como lo da el backend (solo docente). */
 const padronCrudo = (grupoId) =>
@@ -218,10 +208,8 @@ const cambiarEstadoGrupo = async (grupoId, objetivo) => {
     );
   }
 
-  // El backend alterna Activo/Inactivo y comprueba que quien lo pide sea el docente.
-  const respuesta = await api.put(`/groups/${grupoId}/toggle-status`, null, {
-    params: { professorId: usuarioActual()?.id },
-  });
+  // El backend alterna Activo/Inactivo y toma al docente del token: no se envía su id.
+  const respuesta = await api.put(`/groups/${grupoId}/toggle-status`);
   return completarGrupo(respuesta.data);
 };
 
@@ -238,7 +226,9 @@ export const grupoHttp = {
   obtenerPorCodigo: (codigo) => vinculacionHttp.previsualizarCodigo(codigo),
 
   /** RF-03 y RN-01: crea el grupo; el código lo genera el backend. */
-  crear: async ({ nombre, descripcion, metaMinimaHoras } = {}) => {
+  crear: async ({
+    nombre, descripcion, metaMinimaHoras, fechaTermino = null,
+  } = {}) => {
     const nombreLimpio = String(nombre ?? '').trim();
     const descripcionLimpia = String(descripcion ?? '').trim();
     const meta = Number(metaMinimaHoras);
@@ -255,6 +245,7 @@ export const grupoHttp = {
       description: descripcionLimpia,
       minimumHours: Math.round(meta),
       period: String(new Date().getFullYear()),
+      endDate: fechaTermino || null,
     }).then(datos);
 
     return completarGrupo(creado);
@@ -262,6 +253,12 @@ export const grupoHttp = {
 
   /** Elimina el grupo. El backend comprueba que quien lo pide sea su docente. */
   eliminar: (grupoId) => api.delete(`/groups/${grupoId}`).then(() => id(grupoId)),
+
+  /** Define, cambia o quita (`null`) la fecha de término del grupo. */
+  definirFechaTermino: async (grupoId, fechaTermino) => {
+    const grupo = await api.put(`/groups/${grupoId}/end-date`, { endDate: fechaTermino || null }).then(datos);
+    return completarGrupo(grupo);
+  },
 
   desactivar: (grupoId) => cambiarEstadoGrupo(grupoId, ESTADO_GRUPO.INACTIVO),
   reactivar: (grupoId) => cambiarEstadoGrupo(grupoId, ESTADO_GRUPO.ACTIVO),
@@ -271,19 +268,20 @@ export const grupoHttp = {
     const [grupo, padron] = await Promise.all([grupoCrudo(grupoId), padronCrudo(grupoId)]);
     const meta = Number(grupo.minimumHours) || 0;
 
-    const filas = await Promise.all((padron ?? []).map(async (fila) => {
-      const usuario = await usuarioPorId(fila.studentId);
-      return {
+    const filas = (padron ?? []).map((fila) => ({
         vinculacionId: id(fila.enrollmentId),
         estudianteId: id(fila.studentId),
-        nombre: usuario?.name ?? 'Estudiante',
-        correo: usuario?.email ?? '',
+        // El padrón ya trae nombre y correo: solo lo puede pedir el docente del grupo.
+        nombre: fila.studentName || 'Estudiante',
+        correo: fila.studentEmail ?? '',
         vinculadoEn: instante(fila.enrollmentDate),
         totalJornadas: fila.totalLogs ?? 0,
         ...avanceMeta(redondear(fila.registeredHours), meta),
         solicitudesPendientes: fila.pendingRequests ?? 0,
         correccionesHabilitadas: fila.enabledCorrections ?? 0,
-      };
+        ultimaJornada: fila.lastLogDate ?? null,
+        // Semáforo calculado en el backend (PracticeRiskService).
+        riesgo: riesgoDe(fila),
     }));
 
     return filas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -300,6 +298,15 @@ export const grupoHttp = {
     return {
       metaMinimaHoras: Number(grupo.minimumHours) || 0,
       estudiantesVinculados: (padron ?? []).length,
+      // Estudiantes con alguna alerta, los en riesgo primero.
+      alertas: (padron ?? [])
+        .map((fila) => ({
+          vinculacionId: id(fila.enrollmentId),
+          nombre: fila.studentName || 'Estudiante',
+          riesgo: riesgoDe(fila),
+        }))
+        .filter((fila) => fila.riesgo.nivel !== NIVEL_RIESGO.SIN_ALERTA)
+        .sort((a, b) => (a.riesgo.nivel === b.riesgo.nivel ? 0 : a.riesgo.nivel === NIVEL_RIESGO.RIESGO ? -1 : 1)),
       solicitudesPendientes: (padron ?? []).reduce((total, f) => total + (f.pendingRequests ?? 0), 0),
       // Decisión A-11: entregas enviadas que esperan revisión del docente.
       entregasNuevas: (entregas ?? [])
@@ -360,7 +367,7 @@ export const vinculacionHttp = {
   listarDelEstudiante: async () => {
     const inscripciones = await misInscripciones() ?? [];
 
-    const practicas = await Promise.all(inscripciones.map(async (v) => ({
+    const practicas = inscripciones.map((v) => ({
       vinculacionId: id(v.enrollmentId),
       vinculadoEn: instante(v.enrollmentDate),
       grupoId: id(v.practiceGroupId),
@@ -368,13 +375,13 @@ export const vinculacionHttp = {
       descripcion: v.description ?? '',
       codigo: v.groupCode ?? '',
       estado: estadoGrupo(v.status),
-      docenteNombre: await nombreDe(v.idProfessor),
+      docenteNombre: v.professorName ?? '',
       metaMinimaHoras: Number(v.requiredHours) || 0,
       anio: anioDeInscripcion(v),
       totalJornadas: v.totalLogs ?? 0,
       ...avanceMeta(redondear(v.registeredHours), v.requiredHours),
       solicitudesPendientes: v.pendingRequests ?? 0,
-    })));
+    }));
 
     return practicas.sort((a, b) => {
       if (a.estado !== b.estado) return a.estado === ESTADO_GRUPO.ACTIVO ? -1 : 1;
@@ -443,7 +450,7 @@ export const vinculacionHttp = {
       nombre: v.courseName ?? '',
       descripcion: v.description ?? '',
       codigo: v.groupCode ?? '',
-      docenteNombre: await nombreDe(v.idProfessor),
+      docenteNombre: v.professorName ?? '',
       metaMinimaHoras: Number(v.requiredHours) || 0,
       estado: estadoGrupo(v.status),
       anio: anioDeInscripcion(v),
@@ -551,13 +558,8 @@ const mapearJornada = (log, contexto = {}, evidencia = null) => ({
   solicitud: mapearSolicitud(log),
 });
 
-/** La evidencia más reciente de cada jornada, en una sola consulta. */
-const evidenciasDe = async (logIds) => {
-  if (!logIds.length) return new Map();
-  const filas = await api.get('/documents/evidence/batch', { params: { logIds: logIds.join(',') } })
-    .then(datos)
-    .catch(() => []);
-
+/** Filas de LogEvidence -> la evidencia más reciente de cada jornada. */
+const ultimaEvidenciaPorJornada = (filas) => {
   const porJornada = new Map();
   (filas ?? [])
     .sort((a, b) => new Date(a.uploadDate) - new Date(b.uploadDate))
@@ -565,9 +567,21 @@ const evidenciasDe = async (logIds) => {
   return porJornada;
 };
 
+/** Evidencias de todas las jornadas de una inscripción, en una sola consulta. */
+const evidenciasDe = (vinculacionId) =>
+  api.get(`/documents/evidence/enrollment/${vinculacionId}`)
+    .then((respuesta) => ultimaEvidenciaPorJornada(respuesta.data))
+    .catch(() => new Map());
+
+/** La evidencia más reciente de una sola jornada. */
+const evidenciaDeJornada = (logId) =>
+  api.get(`/documents/evidence/${logId}`)
+    .then((respuesta) => ultimaEvidenciaPorJornada(respuesta.data).get(id(logId)) ?? null)
+    .catch(() => null);
+
 const jornadasDeInscripcion = async (vinculacionId, contexto = {}) => {
   const logs = await api.get(`/logs/enrollment/${vinculacionId}`).then(datos) ?? [];
-  const evidencias = await evidenciasDe(logs.map((log) => log.logId));
+  const evidencias = logs.length ? await evidenciasDe(vinculacionId) : new Map();
   return logs.map((log) => mapearJornada(log, contexto, evidencias.get(id(log.logId)) ?? null));
 };
 
@@ -623,7 +637,7 @@ const actualizarJornada = async (jornadaId, cambios) => {
 
   let evidencia = cambios.evidencia ?? null;
   if (archivoDe(evidencia)) evidencia = await subirEvidencia(log.logId, evidencia);
-  else if (!evidencia) evidencia = (await evidenciasDe([log.logId])).get(id(log.logId)) ?? null;
+  else if (!evidencia) evidencia = await evidenciaDeJornada(log.logId);
 
   return mapearJornada(log, {}, evidencia);
 };
@@ -644,8 +658,7 @@ export const jornadaHttp = {
 
   obtener: async (jornadaId) => {
     const log = await api.get(`/logs/${jornadaId}`).then(datos);
-    const evidencias = await evidenciasDe([log.logId]);
-    return mapearJornada(log, {}, evidencias.get(id(log.logId)) ?? null);
+    return mapearJornada(log, {}, await evidenciaDeJornada(log.logId));
   },
 
   /** RF-07 y RF-08: una o varias jornadas. Se validan todas antes de enviar la primera. */
@@ -728,8 +741,7 @@ export const jornadaHttp = {
 
 const respuestaComoJornada = async (promesa) => {
   const log = await promesa.then(datos).catch(conCodigoDeJornada);
-  const evidencias = await evidenciasDe([log.logId]);
-  return mapearJornada(log, {}, evidencias.get(id(log.logId)) ?? null);
+  return mapearJornada(log, {}, await evidenciaDeJornada(log.logId));
 };
 
 export const solicitudHttp = {
@@ -774,10 +786,8 @@ export const solicitudHttp = {
     const padron = (await padronCrudo(grupoId) ?? []).filter((fila) => (fila.pendingRequests ?? 0) > 0);
 
     const porEstudiante = await Promise.all(padron.map(async (fila) => {
-      const [jornadas, nombre] = await Promise.all([
-        jornadasDeInscripcion(fila.enrollmentId),
-        nombreDe(fila.studentId),
-      ]);
+      const jornadas = await jornadasDeInscripcion(fila.enrollmentId);
+      const nombre = fila.studentName || 'Estudiante';
       return jornadas
         .filter((j) => j.solicitud?.estado === ESTADO_SOLICITUD.PENDIENTE)
         .map((j) => ({
@@ -910,15 +920,13 @@ export const documentoHttp = {
       padronCrudo(grupoId),
       api.get(`/documents/submission/group/${grupoId}/history`).then(datos),
     ]);
-    const nombres = await Promise.all((padron ?? []).map((fila) => nombreDe(fila.studentId, 'Estudiante')));
-
     return documentos.map((documento) => {
       if (documento.tipo === TIPO_DOCUMENTO.INFORMATIVO) return { documento, entregas: [] };
 
       const filas = (padron ?? [])
-        .map((fila, i) => filaDocente(
+        .map((fila) => filaDocente(
           mapearEntrega(documento, fila.enrollmentId, fila.studentId, entregas),
-          nombres[i],
+          fila.studentName || 'Estudiante',
         ))
         .sort((a, b) => a.estudianteNombre.localeCompare(b.estudianteNombre, 'es'));
 
@@ -1082,6 +1090,8 @@ const TIPOS_NOTIFICACION = {
   // La entrega se abre desde la tarjeta de su documento (§5.18).
   SUBMISSION: [TIPO_NOTIFICACION.ENTREGA_RECIBIDA, TIPO_REFERENCIA.DOCUMENTO],
   CORRECTION: [TIPO_NOTIFICACION.REEMPLAZO_HABILITADO, TIPO_REFERENCIA.DOCUMENTO],
+  // Aviso diario: lleva a la lista de estudiantes del grupo.
+  RISK_ALERTS: [TIPO_NOTIFICACION.ALERTAS_RIESGO, TIPO_REFERENCIA.GRUPO],
   ENROLLMENT: [TIPO_NOTIFICACION.ESTUDIANTE_VINCULADO, TIPO_REFERENCIA.GRUPO],
   LOG_CREATED: [TIPO_NOTIFICACION.JORNADA_REGISTRADA, TIPO_REFERENCIA.JORNADA],
   LOG_UPDATED: [TIPO_NOTIFICACION.JORNADA_EDITADA, TIPO_REFERENCIA.JORNADA],
@@ -1134,6 +1144,17 @@ export const notificacionHttp = {
   totalDelUsuario: (usuarioId) =>
     api.get(`/notifications/user/${usuarioId}`).then((respuesta) => (respuesta.data ?? []).length),
 
-  noLeidas: (usuarioId) => api.get(`/notifications/user/${usuarioId}/unread-count`).then(datos),
-  marcarLeidas: (usuarioId) => api.put(`/notifications/user/${usuarioId}/mark-read`).then(() => undefined),
+  /** Cuántas notificaciones sin leer hay: todas, o solo las de un grupo. */
+  noLeidas: (usuarioId, grupoId = null) =>
+    api.get(grupoId
+      ? `/notifications/user/${usuarioId}/group/${grupoId}/unread-count`
+      : `/notifications/user/${usuarioId}/unread-count`)
+      .then((respuesta) => Number(respuesta.data) || 0),
+
+  /** Marca como leídas todas las notificaciones, o solo las de un grupo. */
+  marcarLeidas: (usuarioId, grupoId = null) =>
+    api.put(grupoId
+      ? `/notifications/user/${usuarioId}/group/${grupoId}/mark-read`
+      : `/notifications/user/${usuarioId}/mark-read`)
+      .then(() => undefined),
 };

@@ -1344,3 +1344,101 @@ code {
   accent-color: var(--ph-error-texto);
   cursor: pointer;
 }
+
+/* Contador de notificaciones sin leer, junto a «Notificaciones» en el menú lateral. */
+.ph-contador {
+  margin-left: auto;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--ph-error-texto);
+  color: var(--ph-blanco);
+  font-size: 0.75rem;
+  font-weight: var(--ph-peso-fuerte);
+  line-height: 1.35rem;
+  text-align: center;
+}
+
+/* Etiqueta «Nueva» de una notificación todavía no leída. */
+.ph-notificacion__nueva {
+  display: inline-block;
+  margin-left: var(--ph-esp-2);
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: var(--ph-error-fondo);
+  color: var(--ph-error-texto);
+  font-size: 0.7rem;
+  font-weight: var(--ph-peso-fuerte);
+  letter-spacing: normal;
+  text-transform: none;
+  vertical-align: middle;
+}
+
+/* Lista de estudiantes con alertas en el resumen del docente. */
+.ph-alertas { list-style: none; padding: 0; margin: 0; }
+.ph-alertas__fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ph-esp-3);
+  padding: var(--ph-esp-3) 0;
+  border-top: 1px solid var(--ph-borde);
+}
+.ph-alertas__fila:first-child { border-top: none; }
+.ph-alertas__cuerpo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ph-esp-2);
+}
+.ph-alertas__cuerpo .ph-campo__ayuda { flex-basis: 100%; }
+
+/* ---------------------------------------------------- Resumen del grupo (docente) */
+
+/* Dos tarjetas lado a lado; en pantallas angostas, una debajo de la otra. */
+.ph-rejilla-dos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ph-esp-4);
+  align-items: stretch;
+}
+@media (max-width: 900px) {
+  .ph-rejilla-dos { grid-template-columns: 1fr; }
+}
+
+/* Ficha dentro de un panel gris, como «Información del grupo». */
+.ph-ficha--panel {
+  padding: var(--ph-esp-4);
+  border: 1px solid var(--ph-borde);
+  border-radius: var(--ph-radio);
+  background: var(--ph-fondo);
+}
+
+/* Acceso rápido: un enlace con forma de tarjeta pequeña. */
+.ph-acceso-rapido {
+  display: flex;
+  align-items: center;
+  gap: var(--ph-esp-3);
+  padding: var(--ph-esp-3);
+  border: 1px solid var(--ph-borde);
+  border-radius: var(--ph-radio);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ph-acceso-rapido:hover,
+.ph-acceso-rapido:focus-visible {
+  border-color: var(--ph-teal-500);
+  background: var(--ph-fondo);
+}
+.ph-acceso-rapido__signo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--ph-radio);
+  background: var(--ph-teal-100);
+  font-size: 1.15rem;
+}

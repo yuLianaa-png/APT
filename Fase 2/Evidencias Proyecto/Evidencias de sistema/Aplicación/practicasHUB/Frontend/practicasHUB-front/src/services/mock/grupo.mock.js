@@ -13,13 +13,16 @@ import {
   ESTADO_GRUPO,
   ESTADO_JORNADA,
   ESTADO_SOLICITUD,
+  NIVEL_RIESGO,
   TIPO_NOTIFICACION,
   TIPO_REFERENCIA,
 } from '../../utils/constants';
 import { anioDelGrupo } from '../../utils/fechas';
 import { avanceMeta } from '../../utils/horas';
+import { evaluarRiesgo, ultimaJornada } from '../../utils/riesgo';
+import { aFechaISO } from '../../utils/fechas';
 import { listar, nuevoId, porId, transaccion } from './db';
-import { ahoraISO } from './reloj';
+import { ahora, ahoraISO } from './reloj';
 import {
   ErrorServicio, exigirExista, fallar, generarCodigo, notificar, notificarAlGrupo, responder,
 } from './soporte';
@@ -60,7 +63,9 @@ export const obtenerPorCodigo = (codigo) => {
 };
 
 /** RF-03 y RN-01: crea el grupo y genera su código. */
-export const crear = ({ docenteId, nombre, descripcion, metaMinimaHoras }) => {
+export const crear = ({
+  docenteId, nombre, descripcion, metaMinimaHoras, fechaTermino = null,
+}) => {
   const nombreLimpio = String(nombre ?? '').trim();
   const descripcionLimpia = String(descripcion ?? '').trim();
   const meta = Number(metaMinimaHoras);
@@ -76,6 +81,9 @@ export const crear = ({ docenteId, nombre, descripcion, metaMinimaHoras }) => {
       ERRORES.NO_AUTORIZADO,
       'Indica la meta mínima de horas del grupo, mayor que cero.',
     );
+  }
+  if (fechaTermino && fechaTermino < aFechaISO(ahora())) {
+    return fallar(ERRORES.NO_AUTORIZADO, 'La fecha de término no puede ser anterior a hoy.');
   }
 
   try {
@@ -94,6 +102,8 @@ export const crear = ({ docenteId, nombre, descripcion, metaMinimaHoras }) => {
           new Date(creadoEn).getFullYear(),
         ),
         metaMinimaHoras: meta,
+        // Opcional: permite estimar si el ritmo de cada estudiante alcanza la meta.
+        fechaTermino: fechaTermino || null,
         estado: ESTADO_GRUPO.ACTIVO,
         docenteId,
         docenteNombre: docente.nombre,
@@ -228,11 +238,37 @@ export const estudiantesDelGrupo = (grupoId) => {
           .filter((j) => j.solicitud?.estado === ESTADO_SOLICITUD.PENDIENTE).length,
         correccionesHabilitadas: suyas
           .filter((j) => j.estado === ESTADO_JORNADA.OBSERVADA).length,
+        ultimaJornada: ultimaJornada(suyas),
+        // Semáforo de alertas: mismas reglas que el backend (utils/riesgo.js).
+        riesgo: evaluarRiesgo({ grupo, vinculacion, jornadas: suyas, ahora: ahora() }),
       };
     })
     .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
   return responder(padron);
+};
+
+/** Define, cambia o quita (`null`) la fecha de término del grupo. */
+export const definirFechaTermino = (grupoId, fechaTermino) => {
+  try {
+    const grupo = transaccion((datos) => {
+      const encontrado = exigirExista(
+        datos.grupos.find((candidato) => candidato.id === grupoId),
+        'El grupo no existe.',
+      );
+      if (fechaTermino && fechaTermino < aFechaISO(encontrado.creadoEn)) {
+        throw new ErrorServicio(
+          ERRORES.NO_AUTORIZADO,
+          'La fecha de término no puede ser anterior a la creación del grupo.',
+        );
+      }
+      encontrado.fechaTermino = fechaTermino || null;
+      return encontrado;
+    });
+    return responder(enriquecer(grupo, listar('vinculaciones')));
+  } catch (error) {
+    return fallar(error.codigo ?? ERRORES.NO_AUTORIZADO, error.mensaje ?? error.message);
+  }
 };
 
 /**
@@ -253,9 +289,26 @@ export const resumen = (grupoId) => {
     listar('documentos').filter((d) => d.grupoId === grupoId).map((d) => d.id),
   );
 
+  // Estudiantes con alguna alerta, los en riesgo primero.
+  const usuarios = listar('usuarios');
+  const alertas = vinculaciones
+    .map((vinculacion) => ({
+      vinculacionId: vinculacion.id,
+      nombre: usuarios.find((u) => u.id === vinculacion.estudianteId)?.nombre ?? 'Estudiante',
+      riesgo: evaluarRiesgo({
+        grupo,
+        vinculacion,
+        jornadas: jornadas.filter((j) => j.vinculacionId === vinculacion.id),
+        ahora: ahora(),
+      }),
+    }))
+    .filter((fila) => fila.riesgo.nivel !== NIVEL_RIESGO.SIN_ALERTA)
+    .sort((a, b) => (a.riesgo.nivel === b.riesgo.nivel ? 0 : a.riesgo.nivel === NIVEL_RIESGO.RIESGO ? -1 : 1));
+
   return responder({
     metaMinimaHoras: grupo.metaMinimaHoras,
     estudiantesVinculados: vinculaciones.length,
+    alertas,
     solicitudesPendientes: jornadas
       .filter((j) => j.solicitud?.estado === ESTADO_SOLICITUD.PENDIENTE).length,
     entregasNuevas: listar('entregas')
@@ -309,6 +362,7 @@ export const grupoMock = {
   desactivar,
   reactivar,
   eliminar,
+  definirFechaTermino,
   estudiantesDelGrupo,
   resumen,
 };

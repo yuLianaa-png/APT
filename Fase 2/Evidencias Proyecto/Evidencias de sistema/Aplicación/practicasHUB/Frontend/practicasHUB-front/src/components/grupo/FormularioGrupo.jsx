@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { Aviso, Boton, Campo, Modal } from '../ui';
+import { aFechaISO } from '../../utils/fechas';
+import { relojService } from '../../services/reloj.service';
 
 //Formulario para crear un grupo de práctica.
 
 const FormularioGrupo = ({ alCrear, alCerrar, creando = false, errorServicio = null }) => {
-  const [campos, setCampos] = useState({ nombre: '', descripcion: '', metaMinimaHoras: '' });
+  const [campos, setCampos] = useState({
+    nombre: '', descripcion: '', metaMinimaHoras: '', fechaTermino: '',
+  });
+  const hoy = aFechaISO(relojService.ahora());
   const [errores, setErrores] = useState({});
 
   const cambiar = (clave) => (evento) => {
@@ -29,6 +34,11 @@ const FormularioGrupo = ({ alCrear, alCerrar, creando = false, errorServicio = n
       nuevos.metaMinimaHoras = 'La meta debe ser un número de horas mayor que cero.';
     }
 
+    // Opcional: solo se valida si se completó.
+    if (campos.fechaTermino && campos.fechaTermino < hoy) {
+      nuevos.fechaTermino = 'La fecha de término no puede ser anterior a hoy.';
+    }
+
     setErrores(nuevos);
     return Object.keys(nuevos).length === 0;
   };
@@ -41,6 +51,7 @@ const FormularioGrupo = ({ alCrear, alCerrar, creando = false, errorServicio = n
       nombre: campos.nombre.trim(),
       descripcion: campos.descripcion.trim(),
       metaMinimaHoras: Number(campos.metaMinimaHoras),
+      fechaTermino: campos.fechaTermino || null,
     });
   };
 
@@ -110,6 +121,24 @@ const FormularioGrupo = ({ alCrear, alCerrar, creando = false, errorServicio = n
               placeholder="360"
               value={campos.metaMinimaHoras}
               onChange={cambiar('metaMinimaHoras')}
+              disabled={creando}
+            />
+          )}
+        </Campo>
+
+        <Campo
+          etiqueta="Fecha de término de la práctica"
+          error={errores.fechaTermino}
+          ayuda="Opcional. Con ella el sistema te avisa si el ritmo de un estudiante no alcanza la meta a tiempo. Puedes definirla después."
+        >
+          {(atributos) => (
+            <input
+              {...atributos}
+              className={`ph-campo__control${errores.fechaTermino ? ' ph-campo__control--error' : ''}`}
+              type="date"
+              min={hoy}
+              value={campos.fechaTermino}
+              onChange={cambiar('fechaTermino')}
               disabled={creando}
             />
           )}

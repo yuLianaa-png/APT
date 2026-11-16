@@ -4,8 +4,8 @@ services:
   auth-service:
     build: ./auth-service
     container_name: practicahub-auth
-    ports:
-      - "8081:8081"
+    expose:
+      - "8081"
     env_file:
       - .env
 
@@ -15,8 +15,8 @@ services:
       context: ./practice-service
       dockerfile: Dockerfile
     container_name: practicahub-practice
-    ports:
-      - "8082:8082"
+    expose:
+      - "8082"
     env_file:
       - .env
 
@@ -36,8 +36,8 @@ services:
     build:
       context: ./document-service
     container_name: practicahub-document
-    ports:
-      - "8083:8083"
+    expose:
+      - "8083"
     env_file:
       - .env
     volumes:
@@ -49,8 +49,8 @@ services:
       context: ./notification-service
       dockerfile: Dockerfile
     container_name: practicahub-notification
-    ports:
-      - "8084:8084"
+    expose:
+      - "8084"
     env_file:
       - .env
 

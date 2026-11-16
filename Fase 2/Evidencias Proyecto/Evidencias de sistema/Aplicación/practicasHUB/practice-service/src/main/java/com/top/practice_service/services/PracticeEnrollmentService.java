@@ -1,9 +1,11 @@
 package com.top.practice_service.services;
 
 import com.top.practice_service.DTO.GroupStudentDTO;
+import com.top.practice_service.DTO.RiskDTO;
 import com.top.practice_service.clients.AuthClient;
 import com.top.practice_service.clients.NotificationClient;
 import com.top.practice_service.DTO.StudentEnrollmentDTO;
+import com.top.practice_service.DTO.UserDTO;
 import com.top.practice_service.models.PracticeEnrollment;
 import com.top.practice_service.models.PracticeGroup;
 import com.top.practice_service.models.PracticeLog;
@@ -30,6 +32,8 @@ public class PracticeEnrollmentService {
     private NotificationClient notificationClient;
     @Autowired
     private AuthClient authClient;
+    @Autowired
+    private PracticeRiskService riskService;
 
     //valida codigo existente, grupo activo y que el estudiante no este vinculado
     private PracticeGroup validateGroupForEnrollment(String groupCode, Long studentId) {
@@ -81,9 +85,20 @@ public class PracticeEnrollmentService {
         return savedEnrollment;
     }
 
+    //datos de un usuario; si auth-service no responde se devuelve null y no se rompe nada
+    private UserDTO findUser(Long userId) {
+        try {
+            return authClient.getUserById(userId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public List<StudentEnrollmentDTO> getStudentEnrollments(Long studentId) {
         List<PracticeEnrollment> enrollments = enrollmentRepository.findByStudentId(studentId);
         List<StudentEnrollmentDTO> response = new java.util.ArrayList<>();
+        //un docente puede tener varios grupos del estudiante: su nombre se busca una vez
+        java.util.Map<Long, String> professorNames = new java.util.HashMap<>();
 
         for (PracticeEnrollment enrollment : enrollments) {
             groupRepository.findById(enrollment.getPracticeGroupId()).ifPresent(group -> {
@@ -102,7 +117,11 @@ public class PracticeEnrollmentService {
                         dashboardData.getRequiredHours(),
                         dashboardData.getTotalLogs(),
                         dashboardData.getPendingRequests(),
-                        group.getCreationDate()
+                        group.getCreationDate(),
+                        professorNames.computeIfAbsent(group.getIdProfessor(), id -> {
+                            UserDTO professor = findUser(id);
+                            return professor != null ? professor.getName() : "";
+                        })
                 ));
             });
         }
@@ -128,14 +147,22 @@ public class PracticeEnrollmentService {
             int pending = (int) logs.stream().filter(log -> "Pendiente".equalsIgnoreCase(log.getRequestStatus())).count();
             int enabled = (int) logs.stream().filter(log -> "OBSERVADA".equalsIgnoreCase(log.getStatus())).count();
 
+            UserDTO student = findUser(enrollment.getStudentId());
+            RiskDTO risk = riskService.evaluate(group, enrollment, logs);
+
             response.add(new GroupStudentDTO(
                     enrollment.getEnrollmentId(),
                     enrollment.getStudentId(),
+                    student != null ? student.getName() : null,
+                    student != null ? student.getEmail() : null,
                     enrollment.getEnrollmentDate(),
                     logs.size(),
                     Math.round(hours * 100.0) / 100.0,
                     pending,
-                    enabled
+                    enabled,
+                    riskService.lastLogDate(logs),
+                    risk.getLevel(),
+                    risk.getReasons()
             ));
         }
         return response;

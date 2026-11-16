@@ -40,6 +40,16 @@ export const ESTADO_SOLICITUD = {
   RECHAZADA: 'RECHAZADA',
 };
 
+/**
+ * Semáforo de alertas de un estudiante (ver `utils/riesgo.js` y PracticeRiskService).
+ * No es una nota ni una evaluación: avisa al docente a quién conviene mirar primero.
+ */
+export const NIVEL_RIESGO = {
+  SIN_ALERTA: 'SIN_ALERTA',
+  ATENCION: 'ATENCION',
+  RIESGO: 'RIESGO',
+};
+
 /** Tipo de publicación documental del docente (§5.19). */
 export const TIPO_DOCUMENTO = {
   INFORMATIVO: 'INFORMATIVO',
@@ -80,6 +90,8 @@ export const TIPO_NOTIFICACION = {
   GRUPO_DESACTIVADO: 'GRUPO_DESACTIVADO',
   GRUPO_REACTIVADO: 'GRUPO_REACTIVADO',
   GRUPO_ELIMINADO: 'GRUPO_ELIMINADO',
+  // Aviso diario al docente.
+  ALERTAS_RIESGO: 'ALERTAS_RIESGO',
 };
 
 /** Objeto al que apunta una notificación; `Ver` abre ese elemento dentro del grupo (RN-16). */
@@ -209,6 +221,12 @@ export const ETIQUETAS = {
     GRUPO_DESACTIVADO: 'Práctica desactivada',
     GRUPO_REACTIVADO: 'Práctica reactivada',
     GRUPO_ELIMINADO: 'Práctica eliminada',
+    ALERTAS_RIESGO: 'Estudiantes que requieren atención',
+  },
+  NIVEL_RIESGO: {
+    SIN_ALERTA: 'Al día',
+    ATENCION: 'Requiere atención',
+    RIESGO: 'En riesgo',
   },
 };
 

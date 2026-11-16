@@ -1,5 +1,6 @@
 server:
-  port: 8080
+  # Render asigna el puerto en la variable PORT; en local se usa 8080
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -9,13 +10,13 @@ spring:
       routes:
         # Rutas de Autenticación y Usuarios
         - id: auth-service
-          uri: http://auth-service:8081
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
           predicates:
             - Path=/api/auth/**, /api/users/**
 
         # Rutas de Prácticas
         - id: practice-service
-          uri: http://practice-service:8082
+          uri: ${PRACTICE_SERVICE_URL:http://practice-service:8082}
           predicates:
             - Path=/api/groups/**, /api/enrollments/**, /api/logs/**
           filters:
@@ -23,15 +24,23 @@ spring:
 
         #Rutas de documentos
         - id: document-service
-          uri: http://document-service:8083
+          uri: ${DOCUMENT_SERVICE_URL:http://document-service:8083}
           predicates:
             - Path=/api/documents/**
 
         #Rutas notificaciones
         - id: notification-service
-          uri: http://notification-service:8084
+          uri: ${NOTIFICATION_SERVICE_URL:http://notification-service:8084}
           predicates:
             - Path=/api/notifications/**
 
 jwt:
   secret: ${JWT_SECRET}
+
+# origenes del front que pueden llamar al gateway (separados por coma)
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+
+# clave compartida con los microservicios (vacia = no se envia)
+internal:
+  secret: ${INTERNAL_SECRET:}

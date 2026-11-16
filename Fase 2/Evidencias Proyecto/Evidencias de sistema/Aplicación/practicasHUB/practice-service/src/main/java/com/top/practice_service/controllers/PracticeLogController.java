@@ -60,6 +60,26 @@ public class PracticeLogController {
         }
     }
 
+    //interno - inscripcion a la que pertenece una jornada (lo usa document-service)
+    @GetMapping("/{logId}/enrollment-id")
+    public ResponseEntity<?> getEnrollmentIdByLog(@PathVariable Long logId,
+                                                  @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        if (userId != null) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ACCESO DENEGADO.");
+        try {
+            return ResponseEntity.ok(logService.getEnrollmentIdByLog(logId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    //interno - ids de las jornadas de una inscripcion (lo usa document-service)
+    @GetMapping("/enrollment/{enrollmentId}/ids")
+    public ResponseEntity<?> getLogIdsByEnrollment(@PathVariable Long enrollmentId,
+                                                   @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        if (userId != null) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ACCESO DENEGADO.");
+        return ResponseEntity.ok(logService.getLogIdsByEnrollment(enrollmentId));
+    }
+
     //estudiante o docente - detalle de una jornada
     @GetMapping("/{logId}")
     public ResponseEntity<?> getLogById(@PathVariable Long logId,
@@ -77,13 +97,13 @@ public class PracticeLogController {
     //estudiante - editar jornada por ventana o habilitacion
     @PutMapping("/{logId}")
     public ResponseEntity<?> editLog(@PathVariable Long logId, @RequestBody PracticeLog updatedData,
-                                     @RequestHeader(value = "X-User-Id", required = false) Long userId,
-                                     @RequestHeader(value = "X-User-Role", defaultValue = "ESTUDIANTE") String role) {
+                                     @RequestHeader("X-User-Id") Long userId,
+                                     @RequestHeader("X-User-Role") String role) {
         if (!"ESTUDIANTE".equalsIgnoreCase(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ERROR: Solo estudiantes pueden editar sus jornadas.");
         }
         try {
-            if (userId != null) logService.checkLogAccess(logId, userId, role);
+            logService.checkLogAccess(logId, userId, role);
             return ResponseEntity.ok(logService.editPracticeLog(logId, updatedData));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -93,13 +113,13 @@ public class PracticeLogController {
     //estudiante - solicitar correccion
     @PutMapping("/{logId}/request-correction")
     public ResponseEntity<?> requestCorrection(@PathVariable Long logId, @RequestBody Map<String, String> payload,
-                                               @RequestHeader(value = "X-User-Id", required = false) Long userId,
-                                               @RequestHeader(value = "X-User-Role", defaultValue = "ESTUDIANTE") String role) {
+                                               @RequestHeader("X-User-Id") Long userId,
+                                               @RequestHeader("X-User-Role") String role) {
         if (!"ESTUDIANTE".equalsIgnoreCase(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ERROR: Solo estudiantes pueden solicitar correcciones.");
         }
         try {
-            if (userId != null) logService.checkLogAccess(logId, userId, role);
+            logService.checkLogAccess(logId, userId, role);
             String reason = payload.get("reason");
             return ResponseEntity.ok(logService.requestCorrection(logId, reason));
         } catch (Exception e) {
@@ -110,13 +130,13 @@ public class PracticeLogController {
     //docente - habilita correccion
     @PutMapping("/{logId}/enable-correction")
     public ResponseEntity<?> enableCorrection(@PathVariable Long logId, @RequestBody Map<String, String> payload,
-                                              @RequestHeader(value = "X-User-Id", required = false) Long userId,
-                                              @RequestHeader(value = "X-User-Role", defaultValue = "PROFESOR") String role) {
-        if (!"PROFESOR".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+                                              @RequestHeader("X-User-Id") Long userId,
+                                              @RequestHeader("X-User-Role") String role) {
+        if (!"PROFESOR".equalsIgnoreCase(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ERROR: Solo profesores pueden habilitar correcciones.");
         }
         try {
-            if (userId != null && "PROFESOR".equalsIgnoreCase(role)) logService.checkLogAccess(logId, userId, role);
+            logService.checkLogAccess(logId, userId, role);
             String observation = payload.get("observation");
             return ResponseEntity.ok(logService.enableCorrection(logId, observation));
         } catch (Exception e) {
@@ -127,13 +147,13 @@ public class PracticeLogController {
     //docente - rechazar correccion
     @PutMapping("/{logId}/reject-correction")
     public ResponseEntity<?> rejectCorrection(@PathVariable Long logId, @RequestBody Map<String, String> payload,
-                                              @RequestHeader(value = "X-User-Id", required = false) Long userId,
-                                              @RequestHeader(value = "X-User-Role", defaultValue = "PROFESOR") String role) {
-        if (!"PROFESOR".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
+                                              @RequestHeader("X-User-Id") Long userId,
+                                              @RequestHeader("X-User-Role") String role) {
+        if (!"PROFESOR".equalsIgnoreCase(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("ERROR: Solo profesores pueden rechazar correcciones.");
         }
         try {
-            if (userId != null && "PROFESOR".equalsIgnoreCase(role)) logService.checkLogAccess(logId, userId, role);
+            logService.checkLogAccess(logId, userId, role);
             String comment = payload.get("comment");
             return ResponseEntity.ok(logService.rejectCorrection(logId, comment));
         } catch (Exception e) {

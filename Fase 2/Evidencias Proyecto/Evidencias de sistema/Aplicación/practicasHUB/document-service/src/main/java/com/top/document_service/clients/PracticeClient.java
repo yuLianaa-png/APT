@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "practice-service", url = "http://practicahub-practice:8082")
+@FeignClient(name = "practice-service", url = "${services.practice.url}")
 public interface PracticeClient {
     @GetMapping("/api/enrollments/group/{groupId}/student-ids")
     List<Long> getStudentIdsByGroup(@PathVariable("groupId") Long groupId);
@@ -17,4 +17,13 @@ public interface PracticeClient {
 
     @GetMapping("/api/enrollments/{enrollmentId}/student-id")
     Long getStudentIdByEnrollment(@PathVariable("enrollmentId") Long enrollmentId);
+
+    @GetMapping("/api/enrollments/{enrollmentId}/group-id")
+    Long getGroupIdByEnrollment(@PathVariable("enrollmentId") Long enrollmentId);
+
+    @GetMapping("/api/logs/{logId}/enrollment-id")
+    Long getEnrollmentIdByLog(@PathVariable("logId") Long logId);
+
+    @GetMapping("/api/logs/enrollment/{enrollmentId}/ids")
+    List<Long> getLogIdsByEnrollment(@PathVariable("enrollmentId") Long enrollmentId);
 }

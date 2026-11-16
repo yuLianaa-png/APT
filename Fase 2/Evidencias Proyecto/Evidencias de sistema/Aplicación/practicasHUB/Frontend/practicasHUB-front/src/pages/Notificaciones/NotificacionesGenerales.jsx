@@ -8,6 +8,7 @@ import {
   Aviso, Cargando, EstadoError, EstadoVacio,
 } from '../../components/ui';
 import ListaNotificaciones from '../../components/notificaciones/ListaNotificaciones';
+import { avisarNotificacionesLeidas } from '../../hooks/useNoLeidas';
 
 // Página de notificaciones generales del usuario. Se accede desde el menú lateral, y muestra todas las novedades de todas las prácticas del usuario, sin importar el grupo.
 
@@ -23,7 +24,14 @@ const NotificacionesGenerales = () => {
     let vigente = true;
 
     notificacionService.generales(usuario.id)
-      .then((avisos) => { if (vigente) setEstado({ avisos, cargando: false, error: null }); })
+      .then((avisos) => {
+        if (vigente) setEstado({ avisos, cargando: false, error: null });
+        // Ya las vio: se marcan como leídas y el contador del menú vuelve a cero.
+        // La lista conserva `leida: false` hasta recargar, para señalar cuáles eran nuevas.
+        notificacionService.marcarLeidas(usuario.id)
+          .then(avisarNotificacionesLeidas)
+          .catch(() => {});
+      })
       .catch((fallo) => {
         if (vigente) {
           setEstado({

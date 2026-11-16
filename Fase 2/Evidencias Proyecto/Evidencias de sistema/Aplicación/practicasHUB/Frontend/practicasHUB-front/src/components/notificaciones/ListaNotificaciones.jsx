@@ -23,6 +23,7 @@ const SIGNOS = {
   [TIPO_NOTIFICACION.GRUPO_DESACTIVADO]: '■',
   [TIPO_NOTIFICACION.GRUPO_REACTIVADO]: '▶',
   [TIPO_NOTIFICACION.GRUPO_ELIMINADO]: '✕',
+  [TIPO_NOTIFICACION.ALERTAS_RIESGO]: '!',
 };
 
 const TONOS = {
@@ -38,6 +39,7 @@ const TONOS = {
   [TIPO_NOTIFICACION.GRUPO_DESACTIVADO]: 'espera',
   [TIPO_NOTIFICACION.GRUPO_REACTIVADO]: 'exito',
   [TIPO_NOTIFICACION.GRUPO_ELIMINADO]: 'error',
+  [TIPO_NOTIFICACION.ALERTAS_RIESGO]: 'espera',
 };
 
 const ListaNotificaciones = ({
@@ -81,6 +83,7 @@ const ListaNotificaciones = ({
 
               <p className="ph-notificacion__tipo">
                 {ETIQUETAS.TIPO_NOTIFICACION[aviso.tipo] ?? 'Novedad'}
+                {aviso.leida === false && <span className="ph-notificacion__nueva">Nueva</span>}
               </p>
               <p className="ph-notificacion__mensaje">{aviso.mensaje}</p>
               <p className="ph-campo__ayuda">{formatearInstante(aviso.creadaEn)}</p>
