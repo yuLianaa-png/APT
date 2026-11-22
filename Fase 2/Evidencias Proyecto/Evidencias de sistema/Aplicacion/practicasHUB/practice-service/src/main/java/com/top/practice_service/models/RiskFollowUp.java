@@ -27,7 +27,6 @@ public class RiskFollowUp {
     @Column(length = 20)
     private String status;
 
-    //nivel mas grave que tuvo la alerta mientras estuvo abierta
     @Column(length = 20)
     private String level;
 

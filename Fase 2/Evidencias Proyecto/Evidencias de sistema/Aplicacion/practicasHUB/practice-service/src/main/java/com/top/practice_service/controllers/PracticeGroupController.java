@@ -62,7 +62,6 @@ public class PracticeGroupController {
     }
 
     // Un usuario solo ve los grupos que la corresponden, porque el grupo incluye su codigo de vinculacion.
-    //docente - fecha de termino del grupo: {"endDate": "2026-12-20"} o {"endDate": null} para quitarla
     @PutMapping("/{groupId}/end-date")
     public ResponseEntity<?> updateEndDate(@PathVariable Long groupId,
                                            @RequestBody java.util.Map<String, String> payload,

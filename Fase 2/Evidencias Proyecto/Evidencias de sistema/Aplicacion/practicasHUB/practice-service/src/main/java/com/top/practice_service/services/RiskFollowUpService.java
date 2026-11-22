@@ -22,8 +22,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 
-//Que hace el docente con una alerta: la alerta se abre sola, el docente registra lo que hizo
-//(contacto, acuerdo, plan o prorroga) y se cierra cuando la resuelve o cuando el estudiante vuelve a estar al dia.
 @Service
 public class RiskFollowUpService {
     public static final String OPEN = "ABIERTA";
@@ -68,7 +66,7 @@ public class RiskFollowUpService {
             current.setUpdatedAt(now);
             return followUpRepository.save(current);
         }
-        //solo se cierra sola la que abrio una alerta; un plan preventivo sigue abierto hasta que el docente lo cierre
+
         if (!hasAlert && current != null && !PracticeRiskService.NO_ALERT.equals(current.getLevel())) {
             close(current, null, "Se cerró automáticamente: el estudiante volvió a estar al día.");
             return null;
@@ -121,7 +119,7 @@ public class RiskFollowUpService {
         return toDTO(enrollment, evaluate(group, enrollment));
     }
 
-    //prorroga individual y/o horas semanales comprometidas; los dos en null quitan el plan
+    //prorroga individual y/o horas semanales comprometidas. los dos en null quitan el plan
     public FollowUpDTO setPlan(Long enrollmentId, Long professorId, LocalDate endDate, Double weeklyHours, String note) {
         PracticeEnrollment enrollment = findEnrollment(enrollmentId);
         PracticeGroup group = activeOwnedGroup(enrollment, professorId);
@@ -185,7 +183,7 @@ public class RiskFollowUpService {
         return riskService.evaluate(group, enrollment, logRepository.findByIdEnrollment(enrollment.getEnrollmentId()));
     }
 
-    //la alerta abierta, o una nueva si el docente actua sin que haya una
+    //alerta abierta, o una nueva si el docente actua sin que haya una
     private RiskFollowUp openOrCreate(PracticeEnrollment enrollment) {
         LocalDateTime now = LocalDateTime.now();
         RiskFollowUp followUp = followUpRepository

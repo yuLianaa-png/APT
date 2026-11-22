@@ -29,12 +29,10 @@ public class StudentEnrollmentDTO {
     private int pendingRequests;
     private LocalDateTime groupCreationDate;
     private String professorName;
-    //lo que el estudiante necesita para ponerse al dia (sin las alertas que dependen del docente)
     private String riskLevel;
     private List<String> riskReasons;
     private Double requiredWeeklyHours;
     private LocalDate endDate;
     private Double weeklyHoursCommitment;
-    //mensajes del docente que el estudiante aun no lee
     private long unreadMessages;
 }

@@ -10,6 +10,5 @@ import java.util.List;
 public interface PracticeMessageRepository extends JpaRepository<PracticeMessage, Long> {
     List<PracticeMessage> findByEnrollmentIdOrderByCreatedAtAsc(Long enrollmentId);
     List<PracticeMessage> findByEnrollmentId(Long enrollmentId);
-    //mensajes que el otro participante todavia no lee
     long countByEnrollmentIdAndSenderIdNotAndReadAtIsNull(Long enrollmentId, Long readerId);
 }

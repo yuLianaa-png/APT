@@ -17,20 +17,16 @@ import java.util.List;
 @Setter
 public class FollowUpDTO {
     private Long enrollmentId;
-    //null si el estudiante nunca tuvo una alerta
     private String status;
     private String level;
     private LocalDateTime openedAt;
     private LocalDateTime resolvedAt;
-    //alerta actual del estudiante
     private String riskLevel;
     private List<String> riskReasons;
     private Double requiredWeeklyHours;
     private LocalDate endDate;
-    //plan vigente
     private LocalDate customEndDate;
     private Double weeklyHoursCommitment;
     private LocalDate commitmentSince;
-    //historial completo, lo mas reciente primero
     private List<RiskFollowUpAction> actions;
 }

@@ -8,7 +8,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-//mensaje entre el docente y un estudiante; el contenido se guarda cifrado (AES-GCM)
+//mensaje entre el docente y un estudiante. el contenido se guarda cifrado
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -27,11 +27,9 @@ public class PracticeMessage {
     @Column(name = "sender_id", nullable = false)
     private Long senderId;
 
-    //ESTUDIANTE o PROFESOR
     @Column(name = "sender_role", length = 20)
     private String senderRole;
 
-    //vector de inicializacion + texto cifrado, en base64
     @Column(name = "encrypted_content", columnDefinition = "TEXT", nullable = false)
     private String encryptedContent;
 

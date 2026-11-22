@@ -10,5 +10,4 @@ import java.util.List;
 public interface RiskFollowUpActionRepository extends JpaRepository<RiskFollowUpAction, Long> {
     List<RiskFollowUpAction> findByEnrollmentIdOrderByCreatedAtDesc(Long enrollmentId);
     List<RiskFollowUpAction> findByEnrollmentId(Long enrollmentId);
-    boolean existsByFollowUpId(Long followUpId);
 }

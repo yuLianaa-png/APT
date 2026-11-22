@@ -16,8 +16,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
-//Aviso diario en dos pasos: primero se le avisa al estudiante lo que necesita para ponerse al dia;
-//al docente solo le llegan los que estan en riesgo (escalamiento) y las alertas que nadie ha gestionado.
+//Aviso diario en dos pasos: primero avisa estudiante, luego profesor cuando este en riego
 @Service
 public class RiskAlertService {
     //un mismo recordatorio no se repite antes de estos dias, salvo que el nivel cambie

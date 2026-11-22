@@ -14,7 +14,6 @@ public class StudentDashboardDTO {
     private double totalRegisteredHours;
     private int requiredHours;
     private double progressPercentage;
-
     private double remainingHours;
     private int totalLogs;
     private boolean goalReached;

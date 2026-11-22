@@ -19,8 +19,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-//Mensajes entre el docente y cada estudiante de su grupo. Solo los dos participantes pueden leerlos,
-//el contenido se guarda cifrado y la notificacion avisa que hay un mensaje sin mostrar su texto.
+//mensajes entre el docente y cada estudiante de su grupo
 @Service
 public class PracticeMessageService {
     private static final int MAX_LENGTH = 2000;
@@ -92,7 +91,7 @@ public class PracticeMessageService {
         return toDTO(saved);
     }
 
-    //bandeja del docente: una conversacion por estudiante, las con mensajes sin leer primero
+    //bandeja del docente - una conversacion por estudiante, las con mensajes sin leer primero
     public List<ConversationDTO> getGroupConversations(Long groupId, Long professorId) {
         PracticeGroup group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo de práctica no encontrado."));
@@ -135,7 +134,7 @@ public class PracticeMessageService {
         messageRepository.deleteAll(messageRepository.findByEnrollmentId(enrollmentId));
     }
 
-    //solo el estudiante de la vinculacion y el docente del grupo; devuelve el rol con que participa
+    //solo el estudiante de la vinculacion y el docente del grupo ven su conversacion
     private String checkParticipant(PracticeEnrollment enrollment, PracticeGroup group, Long userId, String role) {
         if ("ESTUDIANTE".equalsIgnoreCase(role) && enrollment.getStudentId().equals(userId)) return "ESTUDIANTE";
         if ("PROFESOR".equalsIgnoreCase(role) && group.getIdProfessor().equals(userId)) return "PROFESOR";

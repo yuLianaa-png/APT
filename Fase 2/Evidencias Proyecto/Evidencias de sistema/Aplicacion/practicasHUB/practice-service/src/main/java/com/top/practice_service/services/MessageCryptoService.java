@@ -12,8 +12,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-//Cifra el contenido de los mensajes antes de guardarlo (AES-256-GCM).
-//La clave viene de MESSAGE_KEY: sin ella, quien lea la base de datos no puede leer los mensajes.
+//cifra el contenido de los mensajes antes de guardarlo
 @Service
 public class MessageCryptoService {
     private static final int IV_LENGTH = 12;
@@ -24,7 +23,7 @@ public class MessageCryptoService {
     public MessageCryptoService(@Value("${messages.key:}") String secret) {
         String value = secret;
         if (value == null || value.isBlank()) {
-            //solo para desarrollo local; en Render la clave es obligatoria (la genera render.yaml)
+            //solo para desarrollo local, en Render la clave es obligatoria (la genera render.yaml)
             System.err.println("ADVERTENCIA: MESSAGE_KEY no está definida, se usa una clave de desarrollo.");
             value = "practicashub-clave-solo-desarrollo";
         }

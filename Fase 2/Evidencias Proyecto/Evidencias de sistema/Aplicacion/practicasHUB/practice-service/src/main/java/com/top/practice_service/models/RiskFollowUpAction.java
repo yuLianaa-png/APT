@@ -28,11 +28,9 @@ public class RiskFollowUpAction {
     @Column(name = "enrollment_id", nullable = false)
     private Long enrollmentId;
 
-    //null cuando la accion la registra el sistema (cierre automatico)
     @Column(name = "professor_id")
     private Long professorId;
 
-    //CONTACTO, ACUERDO, PLAN, NOTA o CIERRE
     @Column(length = 20)
     private String type;
 

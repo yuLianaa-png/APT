@@ -27,8 +27,7 @@ public class PracticeRiskService {
     private static final int MIN_DAYS_TO_EVALUATE_PACE = 7;
     private static final double PACE_RISK_RATIO = 0.8;
     private static final int PENDING_REQUEST_WARNING_DAYS = 2;
-    //el plan acordado se revisa recien cuando lleva una semana completa
-    private static final int PLAN_REVIEW_DAYS = 7;
+    private static final int PLAN_REVIEW_DAYS = 7; //el plan acordado se revisa recien cuando lleva una semana completa
 
     //zona horaria de chile
     private static final ZoneId CHILE = ZoneId.of("America/Santiago");
@@ -90,7 +89,7 @@ public class PracticeRiskService {
                 }
             }
 
-            //plan acordado con el docente: horas de los ultimos 7 dias contra las comprometidas
+            //plan acordado con el docente - horas de los ultimos 7 dias contra las comprometidas
             Double commitment = enrollment.getWeeklyHoursCommitment();
             LocalDate since = enrollment.getCommitmentSince();
             if (commitment != null && commitment > 0 && since != null
