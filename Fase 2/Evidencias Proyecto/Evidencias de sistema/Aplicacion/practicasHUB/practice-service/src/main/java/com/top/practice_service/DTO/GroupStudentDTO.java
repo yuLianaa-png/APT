@@ -27,4 +27,11 @@ public class GroupStudentDTO {
     //alertas: SIN_ALERTA, ATENCION o RIESGO, y los motivos en texto
     private String riskLevel;
     private List<String> riskReasons;
+    //seguimiento: horas por semana que le faltan, estado de la alerta y plan acordado
+    private Double requiredWeeklyHours;
+    private String followUpStatus;
+    private LocalDate customEndDate;
+    private Double weeklyHoursCommitment;
+    //mensajes del estudiante que el docente aun no lee
+    private long unreadMessages;
 }

@@ -92,6 +92,10 @@ export const TIPO_NOTIFICACION = {
   GRUPO_ELIMINADO: 'GRUPO_ELIMINADO',
   // Aviso diario al docente.
   ALERTAS_RIESGO: 'ALERTAS_RIESGO',
+  // Seguimiento de alertas: recordatorio y plan al estudiante; mensajes entre ambos.
+  RECORDATORIO_RIESGO: 'RECORDATORIO_RIESGO',
+  PLAN_SEGUIMIENTO: 'PLAN_SEGUIMIENTO',
+  MENSAJE_RECIBIDO: 'MENSAJE_RECIBIDO',
 };
 
 /** Objeto al que apunta una notificación; `Ver` abre ese elemento dentro del grupo (RN-16). */
@@ -100,7 +104,28 @@ export const TIPO_REFERENCIA = {
   DOCUMENTO: 'DOCUMENTO',
   ENTREGA: 'ENTREGA',
   GRUPO: 'GRUPO',
+  // Conversación docente-estudiante: el id es la vinculación.
+  CONVERSACION: 'CONVERSACION',
 };
+
+/** Estado del seguimiento de una alerta: qué hizo el docente con ella. */
+export const ESTADO_SEGUIMIENTO = {
+  ABIERTA: 'ABIERTA',
+  EN_SEGUIMIENTO: 'EN_SEGUIMIENTO',
+  RESUELTA: 'RESUELTA',
+};
+
+/** Lo que el docente registra en el seguimiento. PLAN y CIERRE los crea el sistema. */
+export const TIPO_ACCION_SEGUIMIENTO = {
+  CONTACTO: 'CONTACTO',
+  ACUERDO: 'ACUERDO',
+  NOTA: 'NOTA',
+  PLAN: 'PLAN',
+  CIERRE: 'CIERRE',
+};
+
+/** Largo máximo de un mensaje (igual que en el backend). */
+export const LARGO_MAXIMO_MENSAJE = 2000;
 
 /**
  * Validación de archivos (RNF-08, §7.1). 40 MB, lista blanca de formatos.
@@ -221,7 +246,22 @@ export const ETIQUETAS = {
     GRUPO_DESACTIVADO: 'Práctica desactivada',
     GRUPO_REACTIVADO: 'Práctica reactivada',
     GRUPO_ELIMINADO: 'Práctica eliminada',
-    ALERTAS_RIESGO: 'Estudiantes que requieren atención',
+    ALERTAS_RIESGO: 'Estudiantes que requieren tu intervención',
+    RECORDATORIO_RIESGO: 'Tu práctica necesita atención',
+    PLAN_SEGUIMIENTO: 'Plan de seguimiento',
+    MENSAJE_RECIBIDO: 'Nuevo mensaje',
+  },
+  ESTADO_SEGUIMIENTO: {
+    ABIERTA: 'Sin gestionar',
+    EN_SEGUIMIENTO: 'En seguimiento',
+    RESUELTA: 'Resuelta',
+  },
+  TIPO_ACCION_SEGUIMIENTO: {
+    CONTACTO: 'Contacto con el estudiante',
+    ACUERDO: 'Acuerdo',
+    NOTA: 'Nota',
+    PLAN: 'Plan o prórroga',
+    CIERRE: 'Alerta cerrada',
   },
   NIVEL_RIESGO: {
     SIN_ALERTA: 'Al día',

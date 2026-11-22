@@ -27,6 +27,10 @@ const COLECCIONES = [
   'entregas',
   'notificaciones',
   'archivos',
+  // Seguimiento de alertas y mensajes docente-estudiante.
+  'seguimientos',
+  'accionesSeguimiento',
+  'mensajes',
 ];
 
 const vacio = () => COLECCIONES.reduce((acc, nombre) => ({ ...acc, [nombre]: [] }), {});

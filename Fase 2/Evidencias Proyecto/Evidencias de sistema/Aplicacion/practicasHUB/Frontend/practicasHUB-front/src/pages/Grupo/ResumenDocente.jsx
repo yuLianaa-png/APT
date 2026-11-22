@@ -150,14 +150,25 @@ const ResumenDocente = () => {
                 <div className="ph-alertas__cuerpo">
                   <strong>{fila.nombre}</strong>
                   <InsigniaEstado tipo="riesgo" estado={fila.riesgo.nivel} />
+                  {fila.seguimiento?.estado && (
+                    <InsigniaEstado tipo="seguimiento" estado={fila.seguimiento.estado} />
+                  )}
                   <span className="ph-campo__ayuda">{fila.riesgo.motivos.join(' ')}</span>
                 </div>
-                <Link
-                  className="ph-boton ph-boton--secundario ph-boton--pequeno"
-                  to={`${base}/estudiantes/${fila.vinculacionId}`}
-                >
-                  Ver estudiante
-                </Link>
+                <div className="ph-fila">
+                  <Link
+                    className="ph-boton ph-boton--tenue ph-boton--pequeno"
+                    to={`${base}/mensajes?vinculacion=${fila.vinculacionId}`}
+                  >
+                    {fila.mensajesNoLeidos > 0 ? `Escribirle (${fila.mensajesNoLeidos})` : 'Escribirle'}
+                  </Link>
+                  <Link
+                    className="ph-boton ph-boton--secundario ph-boton--pequeno"
+                    to={`${base}/estudiantes/${fila.vinculacionId}`}
+                  >
+                    Ver estudiante
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>

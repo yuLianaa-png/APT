@@ -24,14 +24,14 @@ describe('menú general (§2.2)', () => {
 });
 
 describe('menú interno del grupo (§2.2)', () => {
-  it('el estudiante ve las cinco secciones, en orden', () => {
+  it('el estudiante ve las seis secciones, en orden', () => {
     expect(menuDeGrupo(ROLES.ESTUDIANTE, 'gru_1').map((e) => e.etiqueta))
-      .toEqual(['Resumen', 'Mi práctica', 'Jornadas', 'Documentos', 'Notificaciones']);
+      .toEqual(['Resumen', 'Mi práctica', 'Jornadas', 'Documentos', 'Mensajes', 'Notificaciones']);
   });
 
   it('el docente ve Estudiantes donde el estudiante ve Mi práctica', () => {
     expect(menuDeGrupo(ROLES.DOCENTE, 'gru_1').map((e) => e.etiqueta))
-      .toEqual(['Resumen', 'Estudiantes', 'Jornadas', 'Documentos', 'Notificaciones']);
+      .toEqual(['Resumen', 'Estudiantes', 'Jornadas', 'Documentos', 'Mensajes', 'Notificaciones']);
   });
 
   it('todas las rutas internas llevan el grupo en la URL (RN-04)', () => {

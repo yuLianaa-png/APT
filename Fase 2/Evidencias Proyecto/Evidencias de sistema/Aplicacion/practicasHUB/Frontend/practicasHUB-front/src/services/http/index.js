@@ -18,7 +18,7 @@
  *
  * Mapa de rutas usadas (todas relativas a VITE_API_URL, por omisión http://localhost:8080/api):
  *   auth-service         /auth/login, /auth/register, /users/{id}
- *   practice-service     /groups/*, /enrollments/*, /logs/*
+ *   practice-service     /groups/*, /enrollments/*, /logs/* (incluye seguimiento y mensajes)
  *   document-service     /documents/*
  *   notification-service /notifications/*
  */
@@ -29,6 +29,7 @@ import {
   ESTADO_ENTREGA,
   ESTADO_GRUPO,
   ESTADO_JORNADA,
+  ESTADO_SEGUIMIENTO,
   ESTADO_SOLICITUD,
   NIVEL_RIESGO,
   ROLES,
@@ -195,6 +196,8 @@ const riesgoDe = (fila) => ({
   motivos: fila.riskReasons ?? [],
 });
 
+const numeroONulo = (valor) => (valor === null || valor === undefined ? null : Number(valor));
+
 /** Padrón del grupo tal como lo da el backend (solo docente). */
 const padronCrudo = (grupoId) =>
   api.get(`/enrollments/group/${grupoId}/students`).then(datos);
@@ -282,6 +285,14 @@ export const grupoHttp = {
         ultimaJornada: fila.lastLogDate ?? null,
         // Semáforo calculado en el backend (PracticeRiskService).
         riesgo: riesgoDe(fila),
+        ritmoSemanal: numeroONulo(fila.requiredWeeklyHours),
+        // Qué hizo el docente con la alerta (RiskFollowUpService); null si nunca tuvo una.
+        seguimiento: { estado: ESTADO_SEGUIMIENTO[fila.followUpStatus] ?? null },
+        plan: {
+          fechaTermino: fila.customEndDate ?? null,
+          horasSemanales: numeroONulo(fila.weeklyHoursCommitment),
+        },
+        mensajesNoLeidos: Number(fila.unreadMessages) || 0,
     }));
 
     return filas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -304,6 +315,8 @@ export const grupoHttp = {
           vinculacionId: id(fila.enrollmentId),
           nombre: fila.studentName || 'Estudiante',
           riesgo: riesgoDe(fila),
+          seguimiento: { estado: ESTADO_SEGUIMIENTO[fila.followUpStatus] ?? null },
+          mensajesNoLeidos: Number(fila.unreadMessages) || 0,
         }))
         .filter((fila) => fila.riesgo.nivel !== NIVEL_RIESGO.SIN_ALERTA)
         .sort((a, b) => (a.riesgo.nivel === b.riesgo.nivel ? 0 : a.riesgo.nivel === NIVEL_RIESGO.RIESGO ? -1 : 1)),
@@ -316,12 +329,17 @@ export const grupoHttp = {
 
   /** Indicadores del resumen del estudiante dentro de un grupo (§4.5). */
   resumenEstudiante: async (grupoId, estudianteId) => {
-    const [indicadoresJornadas, tarjetas] = await Promise.all([
+    const [indicadoresJornadas, tarjetas, inscripcion] = await Promise.all([
       jornadaHttp.indicadores(estudianteId, grupoId),
       documentoHttp.listarParaEstudiante(grupoId, estudianteId),
+      buscarInscripcion((v) => id(v.practiceGroupId) === id(grupoId)),
     ]);
 
     return {
+      vinculacionId: id(inscripcion?.enrollmentId),
+      // Lo que el estudiante necesita para ponerse al día (sin las alertas del docente).
+      alerta: alertaDelEstudiante(inscripcion),
+      mensajesNoLeidos: Number(inscripcion?.unreadMessages) || 0,
       ...avanceMeta(indicadoresJornadas.horasRegistradas, indicadoresJornadas.metaMinimaHoras),
       totalJornadas: indicadoresJornadas.totalJornadas,
       solicitudesPendientes: indicadoresJornadas.solicitudesPendientes,
@@ -344,6 +362,15 @@ const mapearVinculacion = (inscripcion) => ({
   grupoId: id(inscripcion.practiceGroupId),
   estudianteId: id(usuarioActual()?.id),
   vinculadoEn: instante(inscripcion.enrollmentDate),
+});
+
+/** Alerta, ritmo y plan del estudiante tal como los calcula el backend. */
+const alertaDelEstudiante = (inscripcion) => ({
+  nivel: NIVEL_RIESGO[inscripcion?.riskLevel] ?? NIVEL_RIESGO.SIN_ALERTA,
+  motivos: inscripcion?.riskReasons ?? [],
+  ritmoSemanal: numeroONulo(inscripcion?.requiredWeeklyHours),
+  fechaTermino: inscripcion?.endDate ?? null,
+  compromisoSemanal: numeroONulo(inscripcion?.weeklyHoursCommitment),
 });
 
 const buscarInscripcion = async (predicado) => (await misInscripciones() ?? []).find(predicado) ?? null;
@@ -381,6 +408,8 @@ export const vinculacionHttp = {
       totalJornadas: v.totalLogs ?? 0,
       ...avanceMeta(redondear(v.registeredHours), v.requiredHours),
       solicitudesPendientes: v.pendingRequests ?? 0,
+      alerta: alertaDelEstudiante(v),
+      mensajesNoLeidos: Number(v.unreadMessages) || 0,
     }));
 
     return practicas.sort((a, b) => {
@@ -1099,6 +1128,11 @@ const TIPOS_NOTIFICACION = {
   GROUP_REACTIVATED: [TIPO_NOTIFICACION.GRUPO_REACTIVADO, TIPO_REFERENCIA.GRUPO],
   // El grupo ya no existe: no hay nada que abrir.
   GROUP_DELETED: [TIPO_NOTIFICACION.GRUPO_ELIMINADO, null],
+  // Seguimiento de alertas: al estudiante, al resumen de su práctica.
+  RISK_REMINDER: [TIPO_NOTIFICACION.RECORDATORIO_RIESGO, TIPO_REFERENCIA.GRUPO],
+  FOLLOW_UP_PLAN: [TIPO_NOTIFICACION.PLAN_SEGUIMIENTO, TIPO_REFERENCIA.GRUPO],
+  // La referencia es la vinculación: abre esa conversación.
+  MESSAGE: [TIPO_NOTIFICACION.MENSAJE_RECIBIDO, TIPO_REFERENCIA.CONVERSACION],
 };
 
 const tipoDeNotificacion = (notificacion) => {
@@ -1157,4 +1191,100 @@ export const notificacionHttp = {
       ? `/notifications/user/${usuarioId}/group/${grupoId}/mark-read`
       : `/notifications/user/${usuarioId}/mark-read`)
       .then(() => undefined),
+};
+
+/* --------------------------------------------------- seguimiento de alertas */
+
+/** FollowUpDTO -> seguimiento del front. */
+const mapearSeguimiento = (dto) => ({
+  vinculacionId: id(dto.enrollmentId),
+  estado: ESTADO_SEGUIMIENTO[dto.status] ?? null,
+  abiertaEn: instante(dto.openedAt),
+  resueltaEn: instante(dto.resolvedAt),
+  riesgo: { nivel: NIVEL_RIESGO[dto.riskLevel] ?? NIVEL_RIESGO.SIN_ALERTA, motivos: dto.riskReasons ?? [] },
+  ritmoSemanal: numeroONulo(dto.requiredWeeklyHours),
+  fechaTermino: dto.endDate ?? null,
+  plan: {
+    fechaTermino: dto.customEndDate ?? null,
+    horasSemanales: numeroONulo(dto.weeklyHoursCommitment),
+    desde: dto.commitmentSince ?? null,
+  },
+  acciones: (dto.actions ?? []).map((accion) => ({
+    id: id(accion.actionId),
+    tipo: accion.type,
+    nota: accion.note ?? '',
+    fechaCompromiso: accion.commitmentDate ?? null,
+    creadaEn: instante(accion.createdAt),
+    // Sin docente: la cerró el sistema porque el estudiante volvió a estar al día.
+    automatica: accion.professorId === null || accion.professorId === undefined,
+  })),
+});
+
+export const seguimientoHttp = {
+  /** Estado de la alerta del estudiante y lo que el docente ha hecho con ella. */
+  obtener: (vinculacionId) =>
+    api.get(`/enrollments/${vinculacionId}/follow-up`).then(datos).then(mapearSeguimiento),
+
+  /** Contacto, acuerdo o nota. La nota es obligatoria. */
+  registrarAccion: async (vinculacionId, { tipo, nota, fechaCompromiso = null } = {}) => {
+    if (!String(nota ?? '').trim()) {
+      throw fallo(ERRORES.NO_AUTORIZADO, 'Describe brevemente lo que hiciste o acordaste.');
+    }
+    return api.post(`/enrollments/${vinculacionId}/follow-up/actions`, {
+      type: tipo, note: nota, commitmentDate: fechaCompromiso || null,
+    }).then(datos).then(mapearSeguimiento);
+  },
+
+  resolver: (vinculacionId, nota = '') =>
+    api.put(`/enrollments/${vinculacionId}/follow-up/resolve`, { note: nota })
+      .then(datos).then(mapearSeguimiento),
+
+  /** Prórroga individual y/o horas semanales comprometidas. Los dos vacíos quitan el plan. */
+  definirPlan: (vinculacionId, { fechaTermino = null, horasSemanales = null, nota = '' } = {}) =>
+    api.put(`/enrollments/${vinculacionId}/plan`, {
+      endDate: fechaTermino || null,
+      weeklyHours: horasSemanales === '' || horasSemanales === null ? null : Number(horasSemanales),
+      note: nota,
+    }).then(datos).then(mapearSeguimiento),
+};
+
+/* ----------------------------------------------------------------- mensajes */
+
+/** MessageDTO -> mensaje del front. */
+const mapearMensaje = (mensaje) => ({
+  id: id(mensaje.messageId),
+  vinculacionId: id(mensaje.enrollmentId),
+  propio: id(mensaje.senderId) === id(usuarioActual()?.id),
+  remitenteRol: rolDelBackend(mensaje.senderRole),
+  texto: mensaje.content ?? '',
+  enviadoEn: instante(mensaje.createdAt),
+  leidoEn: instante(mensaje.readAt),
+});
+
+export const mensajeHttp = {
+  /** La conversación de una vinculación. Al abrirla, lo recibido queda leído. */
+  conversacion: (vinculacionId) =>
+    api.get(`/enrollments/${vinculacionId}/messages`)
+      .then((respuesta) => (respuesta.data ?? []).map(mapearMensaje)),
+
+  enviar: async (vinculacionId, texto) => {
+    if (!String(texto ?? '').trim()) {
+      throw fallo(ERRORES.NO_AUTORIZADO, 'Escribe un mensaje antes de enviarlo.');
+    }
+    return api.post(`/enrollments/${vinculacionId}/messages`, { content: texto })
+      .then(datos).then(mapearMensaje);
+  },
+
+  /** Bandeja del docente: una conversación por estudiante, las no leídas primero. */
+  bandejaDelGrupo: (grupoId) =>
+    api.get(`/enrollments/group/${grupoId}/conversations`)
+      .then((respuesta) => (respuesta.data ?? []).map((c) => ({
+        vinculacionId: id(c.enrollmentId),
+        estudianteId: id(c.studentId),
+        nombre: c.studentName || 'Estudiante',
+        ultimoMensaje: c.lastMessage ?? null,
+        ultimoEn: instante(c.lastMessageAt),
+        noLeidos: Number(c.unread) || 0,
+        nivelRiesgo: NIVEL_RIESGO[c.riskLevel] ?? NIVEL_RIESGO.SIN_ALERTA,
+      }))),
 };

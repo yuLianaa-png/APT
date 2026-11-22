@@ -20,6 +20,8 @@ import {
 import { anioDelGrupo } from '../../utils/fechas';
 import { avanceMeta } from '../../utils/horas';
 import { evaluarRiesgo, ultimaJornada } from '../../utils/riesgo';
+import { estadoSeguimiento } from './seguimiento.mock';
+import { noLeidosPara } from './mensaje.mock';
 import { aFechaISO } from '../../utils/fechas';
 import { listar, nuevoId, porId, transaccion } from './db';
 import { ahora, ahoraISO } from './reloj';
@@ -212,6 +214,21 @@ export const reactivar = (grupoId) => cambiarEstado(grupoId, ESTADO_GRUPO.ACTIVO
  * Padrón del grupo (decisión A-03): quién está vinculado, desde cuándo y cómo va.
  * Es también lo que alimenta el listado previo de la sección Jornadas (§5.6).
  */
+/** Semáforo, ritmo, seguimiento y plan de un estudiante: mismas reglas que el backend. */
+const seguimientoDeFila = (grupo, vinculacion, jornadas) => {
+  const riesgo = evaluarRiesgo({ grupo, vinculacion, jornadas, ahora: ahora() });
+  return {
+    riesgo: { nivel: riesgo.nivel, motivos: riesgo.motivos },
+    ritmoSemanal: riesgo.ritmoSemanal,
+    seguimiento: { estado: estadoSeguimiento(vinculacion.id, riesgo) },
+    plan: {
+      fechaTermino: vinculacion.fechaTerminoIndividual ?? null,
+      horasSemanales: vinculacion.compromisoSemanal ?? null,
+    },
+    mensajesNoLeidos: noLeidosPara(vinculacion.id, grupo.docenteId),
+  };
+};
+
 export const estudiantesDelGrupo = (grupoId) => {
   const grupo = porId('grupos', grupoId);
   if (!grupo) return fallar(ERRORES.NO_ENCONTRADO, 'El grupo no existe.');
@@ -239,8 +256,7 @@ export const estudiantesDelGrupo = (grupoId) => {
         correccionesHabilitadas: suyas
           .filter((j) => j.estado === ESTADO_JORNADA.OBSERVADA).length,
         ultimaJornada: ultimaJornada(suyas),
-        // Semáforo de alertas: mismas reglas que el backend (utils/riesgo.js).
-        riesgo: evaluarRiesgo({ grupo, vinculacion, jornadas: suyas, ahora: ahora() }),
+        ...seguimientoDeFila(grupo, vinculacion, suyas),
       };
     })
     .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -292,16 +308,18 @@ export const resumen = (grupoId) => {
   // Estudiantes con alguna alerta, los en riesgo primero.
   const usuarios = listar('usuarios');
   const alertas = vinculaciones
-    .map((vinculacion) => ({
-      vinculacionId: vinculacion.id,
-      nombre: usuarios.find((u) => u.id === vinculacion.estudianteId)?.nombre ?? 'Estudiante',
-      riesgo: evaluarRiesgo({
-        grupo,
-        vinculacion,
-        jornadas: jornadas.filter((j) => j.vinculacionId === vinculacion.id),
-        ahora: ahora(),
-      }),
-    }))
+    .map((vinculacion) => {
+      const fila = seguimientoDeFila(
+        grupo, vinculacion, jornadas.filter((j) => j.vinculacionId === vinculacion.id),
+      );
+      return {
+        vinculacionId: vinculacion.id,
+        nombre: usuarios.find((u) => u.id === vinculacion.estudianteId)?.nombre ?? 'Estudiante',
+        riesgo: fila.riesgo,
+        seguimiento: fila.seguimiento,
+        mensajesNoLeidos: fila.mensajesNoLeidos,
+      };
+    })
     .filter((fila) => fila.riesgo.nivel !== NIVEL_RIESGO.SIN_ALERTA)
     .sort((a, b) => (a.riesgo.nivel === b.riesgo.nivel ? 0 : a.riesgo.nivel === NIVEL_RIESGO.RIESGO ? -1 : 1));
 
@@ -324,6 +342,15 @@ export const resumen = (grupoId) => {
  * RN-06: «restantes» llega a cero pero las horas registradas siguen subiendo. Quien
  * dibuje esto no debe tratar la meta como un tope alcanzado y cerrado.
  */
+/** Lo que ve el estudiante: sin las alertas que dependen del docente. */
+export const alertaDelEstudiante = (riesgo, vinculacion) => ({
+  nivel: riesgo.nivelEstudiante,
+  motivos: riesgo.motivosEstudiante,
+  ritmoSemanal: riesgo.ritmoSemanal,
+  fechaTermino: riesgo.fechaTermino,
+  compromisoSemanal: vinculacion?.compromisoSemanal ?? null,
+});
+
 export const resumenEstudiante = (grupoId, estudianteId) => {
   const grupo = porId('grupos', grupoId);
   if (!grupo) return fallar(ERRORES.NO_ENCONTRADO, 'El grupo no existe.');
@@ -338,7 +365,14 @@ export const resumenEstudiante = (grupoId, estudianteId) => {
     .filter((entrega) => entrega.estudianteId === estudianteId
       && idsDocumento.has(entrega.documentoId));
 
+  const vinculacion = listar('vinculaciones')
+    .find((v) => v.grupoId === grupoId && v.estudianteId === estudianteId);
+  const riesgo = evaluarRiesgo({ grupo, vinculacion, jornadas, ahora: ahora() });
+
   return responder({
+    vinculacionId: vinculacion?.id ?? null,
+    alerta: alertaDelEstudiante(riesgo, vinculacion),
+    mensajesNoLeidos: vinculacion ? noLeidosPara(vinculacion.id, estudianteId) : 0,
     ...avanceMeta(horas, grupo.metaMinimaHoras),
     totalJornadas: jornadas.length,
     solicitudesPendientes: jornadas

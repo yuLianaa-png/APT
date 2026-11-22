@@ -1442,3 +1442,94 @@ code {
   background: var(--ph-teal-100);
   font-size: 1.15rem;
 }
+
+/* ------------------------------------------------ Seguimiento de alertas y mensajes */
+
+.ph-historial { list-style: none; padding: 0; margin: 0; }
+.ph-historial__item {
+  padding: var(--ph-esp-3) 0;
+  border-top: 1px solid var(--ph-borde);
+}
+.ph-historial__item:first-child { border-top: none; }
+.ph-historial__item p { margin: var(--ph-esp-1) 0 0; white-space: pre-wrap; }
+
+/* Bandeja a la izquierda y conversación a la derecha; en pantallas angostas, apiladas. */
+.ph-mensajeria {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: var(--ph-esp-4);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .ph-mensajeria { grid-template-columns: 1fr; }
+}
+
+.ph-bandeja {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--ph-borde);
+  border-radius: var(--ph-radio);
+  background: var(--ph-superficie);
+  overflow: hidden;
+}
+.ph-bandeja li + li { border-top: 1px solid var(--ph-borde); }
+.ph-bandeja__fila {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ph-esp-1);
+  width: 100%;
+  min-height: var(--ph-objetivo-min);
+  padding: var(--ph-esp-3);
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ph-bandeja__fila > .ph-fila { width: 100%; }
+.ph-bandeja__fila:hover { background: var(--ph-superficie-tenue); }
+.ph-bandeja__fila--activa { background: var(--ph-info-fondo); }
+
+.ph-conversacion__hilo {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-esp-3);
+  max-height: 55vh;
+  overflow-y: auto;
+}
+.ph-mensaje {
+  align-self: flex-start;
+  max-width: 75%;
+  padding: var(--ph-esp-2) var(--ph-esp-3);
+  border: 1px solid var(--ph-borde);
+  border-radius: var(--ph-radio-lg);
+  background: var(--ph-superficie-tenue);
+}
+.ph-mensaje--propio {
+  align-self: flex-end;
+  border-color: var(--ph-info-borde);
+  background: var(--ph-info-fondo);
+}
+.ph-mensaje__autor,
+.ph-mensaje__hora {
+  display: block;
+  color: var(--ph-texto-suave);
+  font-size: var(--ph-txt-xs);
+}
+.ph-mensaje__autor { font-weight: var(--ph-peso-fuerte); }
+.ph-mensaje__texto {
+  margin: var(--ph-esp-1) 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.ph-conversacion__escribir {
+  display: flex;
+  gap: var(--ph-esp-3);
+  align-items: flex-end;
+}
+.ph-conversacion__escribir textarea { flex: 1; resize: vertical; }

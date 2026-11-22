@@ -28,6 +28,10 @@ public class PracticeGroupService {
     private NotificationClient notificationClient;
     @Autowired
     private AuthClient authClient;
+    @Autowired
+    private RiskFollowUpService followUpService;
+    @Autowired
+    private PracticeMessageService messageService;
 
     //nombre de un usuario; si auth-service no responde queda vacio y no se rompe nada
     public String userName(Long userId) {
@@ -191,6 +195,9 @@ public class PracticeGroupService {
         List<PracticeEnrollment> enrollments = enrollmentRepository.findByPracticeGroupId(groupId);
         for (PracticeEnrollment enrollment : enrollments) {
             logRepository.deleteAll(logRepository.findByIdEnrollment(enrollment.getEnrollmentId()));
+            //tambien se borran sus mensajes y el seguimiento de sus alertas
+            messageService.deleteByEnrollment(enrollment.getEnrollmentId());
+            followUpService.deleteByEnrollment(enrollment.getEnrollmentId());
         }
         enrollmentRepository.deleteAll(enrollments);
 

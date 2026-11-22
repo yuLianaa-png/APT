@@ -2,6 +2,7 @@ import {
   ESTADO_ENTREGA,
   ESTADO_GRUPO,
   ESTADO_JORNADA,
+  ESTADO_SEGUIMIENTO,
   ESTADO_SOLICITUD,
   ETIQUETAS,
   NIVEL_RIESGO,
@@ -43,6 +44,12 @@ const TONOS = {
     [NIVEL_RIESGO.ATENCION]: 'espera',
     [NIVEL_RIESGO.RIESGO]: 'error',
   },
+  // Qué hizo el docente con la alerta.
+  seguimiento: {
+    [ESTADO_SEGUIMIENTO.ABIERTA]: 'espera',
+    [ESTADO_SEGUIMIENTO.EN_SEGUIMIENTO]: 'info',
+    [ESTADO_SEGUIMIENTO.RESUELTA]: 'exito',
+  },
 };
 
 const CLAVES_ETIQUETA = {
@@ -52,10 +59,11 @@ const CLAVES_ETIQUETA = {
   entrega: 'ESTADO_ENTREGA',
   documento: 'TIPO_DOCUMENTO',
   riesgo: 'NIVEL_RIESGO',
+  seguimiento: 'ESTADO_SEGUIMIENTO',
 };
 
 /**
- * @param {'grupo'|'jornada'|'solicitud'|'entrega'|'documento'|'riesgo'} tipo
+ * @param {'grupo'|'jornada'|'solicitud'|'entrega'|'documento'|'riesgo'|'seguimiento'} tipo
  * @param {string} estado valor del enum correspondiente
  * @param {string} [prefijo] texto antes de la etiqueta, p. ej. «Solicitud»
  */

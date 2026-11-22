@@ -34,6 +34,10 @@ public class PracticeEnrollmentService {
     private AuthClient authClient;
     @Autowired
     private PracticeRiskService riskService;
+    @Autowired
+    private RiskFollowUpService followUpService;
+    @Autowired
+    private PracticeMessageService messageService;
 
     //valida codigo existente, grupo activo y que el estudiante no este vinculado
     private PracticeGroup validateGroupForEnrollment(String groupCode, Long studentId) {
@@ -103,6 +107,7 @@ public class PracticeEnrollmentService {
         for (PracticeEnrollment enrollment : enrollments) {
             groupRepository.findById(enrollment.getPracticeGroupId()).ifPresent(group -> {
                 var dashboardData = logService.getStudentDashboard(enrollment.getEnrollmentId(), enrollment.getStudentId());
+                RiskDTO risk = riskService.evaluate(group, enrollment, logRepository.findByIdEnrollment(enrollment.getEnrollmentId()));
                 response.add(new StudentEnrollmentDTO(
                         enrollment.getEnrollmentId(),
                         group.getIdGroup(),
@@ -121,7 +126,13 @@ public class PracticeEnrollmentService {
                         professorNames.computeIfAbsent(group.getIdProfessor(), id -> {
                             UserDTO professor = findUser(id);
                             return professor != null ? professor.getName() : "";
-                        })
+                        }),
+                        risk.getStudentLevel(),
+                        risk.getStudentReasons(),
+                        risk.getRequiredWeeklyHours(),
+                        risk.getEndDate(),
+                        enrollment.getWeeklyHoursCommitment(),
+                        messageService.unreadFor(enrollment.getEnrollmentId(), studentId)
                 ));
             });
         }
@@ -149,6 +160,8 @@ public class PracticeEnrollmentService {
 
             UserDTO student = findUser(enrollment.getStudentId());
             RiskDTO risk = riskService.evaluate(group, enrollment, logs);
+            //la alerta se abre o se cierra sola segun el nivel actual
+            followUpService.sync(enrollment, risk);
 
             response.add(new GroupStudentDTO(
                     enrollment.getEnrollmentId(),
@@ -162,7 +175,12 @@ public class PracticeEnrollmentService {
                     enabled,
                     riskService.lastLogDate(logs),
                     risk.getLevel(),
-                    risk.getReasons()
+                    risk.getReasons(),
+                    risk.getRequiredWeeklyHours(),
+                    followUpService.currentStatus(enrollment.getEnrollmentId()),
+                    enrollment.getCustomEndDate(),
+                    enrollment.getWeeklyHoursCommitment(),
+                    messageService.unreadFor(enrollment.getEnrollmentId(), professorId)
             ));
         }
         return response;

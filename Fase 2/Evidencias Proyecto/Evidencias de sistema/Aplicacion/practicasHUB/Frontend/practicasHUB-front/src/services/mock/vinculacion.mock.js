@@ -18,11 +18,25 @@ import {
 } from '../../utils/constants';
 import { anioDelGrupo } from '../../utils/fechas';
 import { avanceMeta } from '../../utils/horas';
+import { evaluarRiesgo } from '../../utils/riesgo';
 import { listar, nuevoId, porId, transaccion } from './db';
-import { ahoraISO } from './reloj';
+import { ahora, ahoraISO } from './reloj';
+import { noLeidosPara } from './mensaje.mock';
 import {
   ErrorServicio, exigirExista, fallar, notificar, responder,
 } from './soporte';
+
+/** Alerta del estudiante: sin las que dependen del docente (igual que el backend). */
+const alertaDe = (grupo, vinculacion, jornadas) => {
+  const riesgo = evaluarRiesgo({ grupo, vinculacion, jornadas, ahora: ahora() });
+  return {
+    nivel: riesgo.nivelEstudiante,
+    motivos: riesgo.motivosEstudiante,
+    ritmoSemanal: riesgo.ritmoSemanal,
+    fechaTermino: riesgo.fechaTermino,
+    compromisoSemanal: vinculacion.compromisoSemanal ?? null,
+  };
+};
 
 const normalizarCodigo = (codigo) => String(codigo ?? '').trim().toUpperCase();
 
@@ -56,6 +70,8 @@ export const listarDelEstudiante = (estudianteId) => {
         ...avanceMeta(Math.round(horas * 100) / 100, grupo.metaMinimaHoras),
         solicitudesPendientes: suyas
           .filter((j) => j.solicitud?.estado === ESTADO_SOLICITUD.PENDIENTE).length,
+        alerta: alertaDe(grupo, vinculacion, suyas),
+        mensajesNoLeidos: noLeidosPara(vinculacion.id, estudianteId),
       };
     })
     .sort((a, b) => {

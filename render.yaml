@@ -18,6 +18,8 @@ envVarGroups:
         generateValue: true
       - key: INTERNAL_SECRET     # clave entre el gateway y los microservicios
         generateValue: true
+      - key: MESSAGE_KEY         # cifra los mensajes entre docente y estudiante (practice-service)
+        generateValue: true
 
   # Datos de Supabase: se ingresan a mano al crear el Blueprint (no van en el repo).
   - name: practicashub-supabase

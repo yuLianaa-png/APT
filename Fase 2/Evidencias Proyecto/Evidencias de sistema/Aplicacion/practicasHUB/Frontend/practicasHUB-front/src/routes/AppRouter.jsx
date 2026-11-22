@@ -25,6 +25,8 @@ import NotificacionesGenerales from '../pages/Notificaciones/NotificacionesGener
 import NotificacionesGrupo from '../pages/Notificaciones/NotificacionesGrupo.jsx';
 import DocumentosDocente from '../pages/Documentos/DocumentosDocente.jsx';
 import DocumentosEstudiante from '../pages/Documentos/DocumentosEstudiante.jsx';
+import MensajesEstudiante from '../pages/Mensajes/MensajesEstudiante.jsx';
+import MensajesDocente from '../pages/Mensajes/MensajesDocente.jsx';
 import GaleriaUI from '../pages/_dev/GaleriaUI.jsx';
 
 /**
@@ -60,6 +62,7 @@ const AppRouter = () => (
         {/* Corrección de una jornada Observada, autorizada por el docente. */}
         <Route path="jornadas/:jornadaId/modificar" element={<ModificarJornada />} />
         <Route path="documentos" element={<DocumentosEstudiante />} />
+        <Route path="mensajes" element={<MensajesEstudiante />} />
         <Route path="notificaciones" element={<NotificacionesGrupo />} />
       </Route>
     </Route>
@@ -81,6 +84,7 @@ const AppRouter = () => (
         <Route path="jornadas" element={<JornadasDocente />} />
         <Route path="jornadas/:vinculacionId" element={<HistorialIndividualDocente />} />
         <Route path="documentos" element={<DocumentosDocente />} />
+        <Route path="mensajes" element={<MensajesDocente />} />
         <Route path="notificaciones" element={<NotificacionesGrupo />} />
       </Route>
     </Route>

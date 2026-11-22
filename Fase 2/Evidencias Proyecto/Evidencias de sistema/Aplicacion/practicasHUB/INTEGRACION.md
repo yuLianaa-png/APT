@@ -165,3 +165,43 @@ diario (lunes a viernes, 09:00 hora de Chile) por cada grupo que tenga estudiant
 Backend: `PracticeRiskService` (reglas), `RiskAlertService` (aviso diario, `@EnableScheduling`),
 `PracticeGroup.endDate`, `PracticeLog.correctionRequestedAt`, `PUT /api/groups/{id}/end-date`, y los
 campos `lastLogDate`, `riskLevel`, `riskReasons` en el padrón.
+
+## Seguimiento de alertas y mensajes
+
+Responde a la pregunta «¿qué pasa si el estudiante no alcanza las horas y quién lo gestiona?». Todo vive en practice-service; el gateway no cambia.
+
+### 1. Aviso temprano al estudiante
+- El job diario (lunes a viernes 9:00, America/Santiago) avisa primero al **estudiante** (`RISK_REMINDER`) con sus motivos y las **horas por semana** que necesita para llegar a la meta a tiempo. No repite el aviso antes de 3 días salvo que cambie el nivel.
+- El docente solo recibe aviso (`RISK_ALERTS`) cuando hay estudiantes en **riesgo** o alertas **sin gestionar**.
+- El resumen del estudiante muestra el mismo aviso, el ritmo semanal y un enlace para escribirle al docente. La alerta por solicitudes sin responder no se le muestra, porque depende del docente.
+
+### 2. Ciclo de vida de cada alerta
+- Tablas `risk_follow_ups` y `risk_follow_up_actions`.
+- Estados: `ABIERTA` (Sin gestionar) → `EN_SEGUIMIENTO` (el docente registró algo) → `RESUELTA`.
+- Se cierra sola, con una acción `CIERRE` automática, si el estudiante vuelve a estar al día; también la puede cerrar el docente.
+- Acciones del docente: `CONTACTO`, `ACUERDO` (con fecha de compromiso opcional) y `NOTA`.
+
+### 3. Plan o prórroga
+- La vinculación guarda `custom_end_date` (fecha de término individual), `weekly_hours_commitment` y `commitment_since`.
+- La fecha individual reemplaza a la del grupo en el cálculo de riesgo.
+- Si en los últimos 7 días registró menos horas que las comprometidas, aparece la alerta «No está cumpliendo el plan acordado».
+- El estudiante recibe una notificación `FOLLOW_UP_PLAN`.
+
+### 4. Mensajes docente-estudiante
+- Tabla `practice_messages`. Solo texto, hasta 2000 caracteres, **cifrado con AES-256-GCM** (la clave es el SHA-256 de `MESSAGE_KEY`).
+- Solo participan el estudiante de la vinculación y el docente del grupo. Un grupo inactivo queda en solo lectura.
+- La notificación `MESSAGE` nunca incluye el texto.
+- Nueva sección **Mensajes** en ambos roles. El botón «Escribirle» aparece en las alertas del resumen y en el detalle del estudiante.
+
+### Endpoints nuevos (`/api/enrollments`)
+| Método | Ruta | Rol |
+|---|---|---|
+| GET | `/{id}/follow-up` | PROFESOR |
+| POST | `/{id}/follow-up/actions` `{type, note, commitmentDate}` | PROFESOR |
+| PUT | `/{id}/follow-up/resolve` `{note}` | PROFESOR |
+| PUT | `/{id}/plan` `{endDate, weeklyHours, note}` | PROFESOR |
+| GET / POST | `/{id}/messages` `{content}` | participante |
+| GET | `/group/{groupId}/conversations` | PROFESOR |
+
+### Variable de entorno nueva
+`MESSAGE_KEY`: va en `.env` en local y en el grupo `practicashub-secretos` en Render (el Blueprint la genera). Si se cambia, los mensajes antiguos ya no se pueden leer.

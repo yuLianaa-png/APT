@@ -114,6 +114,9 @@ const EstudiantesGrupoDocente = () => {
             return (
               <span className="ph-celda-principal">
                 <InsigniaEstado tipo="riesgo" estado={riesgo.nivel} />
+                {fila.seguimiento?.estado && riesgo.nivel !== NIVEL_RIESGO.SIN_ALERTA && (
+                  <InsigniaEstado tipo="seguimiento" estado={fila.seguimiento.estado} />
+                )}
                 {riesgo.motivos.length > 0 && (
                   <span className="ph-campo__ayuda">{riesgo.motivos.join(' ')}</span>
                 )}

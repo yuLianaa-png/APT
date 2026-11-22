@@ -19,6 +19,7 @@ const SECCIONES_GRUPO = {
     { parte: 'mi-practica', etiqueta: 'Mi práctica' },
     { parte: 'jornadas', etiqueta: 'Jornadas' },
     { parte: 'documentos', etiqueta: 'Documentos' },
+    { parte: 'mensajes', etiqueta: 'Mensajes' },
     { parte: 'notificaciones', etiqueta: 'Notificaciones', contador: true },
   ],
   [ROLES.DOCENTE]: [
@@ -26,6 +27,7 @@ const SECCIONES_GRUPO = {
     { parte: 'estudiantes', etiqueta: 'Estudiantes' },
     { parte: 'jornadas', etiqueta: 'Jornadas' },
     { parte: 'documentos', etiqueta: 'Documentos' },
+    { parte: 'mensajes', etiqueta: 'Mensajes' },
     { parte: 'notificaciones', etiqueta: 'Notificaciones', contador: true },
   ],
 };

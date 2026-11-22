@@ -10,6 +10,7 @@ import {
   Aviso, Boton, Cargando, EstadoError, EstadoVacio, Indicador, Indicadores, InsigniaEstado, Tabla,
 } from '../../components/ui';
 import { DescargarArchivo } from '../../components/archivos';
+import { PanelSeguimiento } from '../../components/seguimiento';
 import { baseDeGrupo } from '../../routes/navegacion';
 
 // Página de detalle de un estudiante del grupo, vista por el docente. Se accede con «Ver estudiante» desde la sección Estudiantes.
@@ -175,6 +176,13 @@ const DetalleEstudianteGrupo = () => {
               detalle={pendientes > 0 ? `${pendientes} pendientes` : 'Sin entregas pendientes'}
             />
           </Indicadores>
+
+          {/* Qué se hizo con la alerta: acciones, plan o prórroga y cierre. */}
+          <PanelSeguimiento
+            vinculacionId={vinculacionId}
+            rutaMensajes={`${base}/mensajes?vinculacion=${vinculacionId}`}
+            alCambiar={cargar}
+          />
 
           <div className="ph-tarjeta ph-pila">
             <div>

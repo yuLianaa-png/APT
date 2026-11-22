@@ -27,6 +27,8 @@ public class PracticeRiskService {
     private static final int MIN_DAYS_TO_EVALUATE_PACE = 7;
     private static final double PACE_RISK_RATIO = 0.8;
     private static final int PENDING_REQUEST_WARNING_DAYS = 2;
+    //el plan acordado se revisa recien cuando lleva una semana completa
+    private static final int PLAN_REVIEW_DAYS = 7;
 
     //zona horaria de chile
     private static final ZoneId CHILE = ZoneId.of("America/Santiago");
@@ -43,8 +45,11 @@ public class PracticeRiskService {
         int goal = group.getMinimumHours() != null ? group.getMinimumHours() : 0;
         boolean goalReached = goal > 0 && hours >= goal;
         boolean groupActive = "Activo".equalsIgnoreCase(group.getStatus());
+        //si el docente dio una prorroga individual, manda esa fecha
+        LocalDate endDate = enrollment.getCustomEndDate() != null ? enrollment.getCustomEndDate() : group.getEndDate();
+        Double requiredWeeklyHours = null;
 
-        //inactividad y ritmo - solo si el grupo esta activo y el estudiante aun no llega a la meta
+        //inactividad, ritmo y plan - solo si el grupo esta activo y el estudiante aun no llega a la meta
         if (groupActive && !goalReached) {
             LocalDate lastLogDate = lastLogDate(logs);
             LocalDate enrollmentDay = enrollment.getEnrollmentDate() != null
@@ -59,13 +64,16 @@ public class PracticeRiskService {
                         : "Se vinculó hace " + inactiveDays + " días y aún no registra jornadas.");
             }
 
-            LocalDate endDate = group.getEndDate();
             if (endDate != null && goal > 0) {
                 if (today.isAfter(endDate)) {
                     level = raise(level, RISK);
                     reasons.add("El periodo terminó el " + endDate.format(DATE_FORMAT)
                             + " sin alcanzar la meta (" + round(hours) + " de " + goal + " h).");
                 } else {
+                    //horas por semana que le faltan para llegar a la meta a tiempo (incluye el dia de hoy)
+                    long daysLeft = ChronoUnit.DAYS.between(today, endDate) + 1;
+                    requiredWeeklyHours = round((goal - hours) / (daysLeft / 7.0));
+
                     long elapsedDays = ChronoUnit.DAYS.between(enrollmentDay, today);
                     //la primera semana no se evalua el ritmo, para no dar falsas alarmas
                     if (elapsedDays >= MIN_DAYS_TO_EVALUATE_PACE) {
@@ -81,7 +89,28 @@ public class PracticeRiskService {
                     }
                 }
             }
+
+            //plan acordado con el docente: horas de los ultimos 7 dias contra las comprometidas
+            Double commitment = enrollment.getWeeklyHoursCommitment();
+            LocalDate since = enrollment.getCommitmentSince();
+            if (commitment != null && commitment > 0 && since != null
+                    && ChronoUnit.DAYS.between(since, today) >= PLAN_REVIEW_DAYS) {
+                LocalDate weekStart = today.minusDays(6);
+                double lastWeekHours = logs.stream()
+                        .filter(log -> log.getLogDate() != null && !log.getLogDate().isBefore(weekStart))
+                        .mapToDouble(log -> log.getTotalHours() != null ? log.getTotalHours() : 0.0)
+                        .sum();
+                if (lastWeekHours < commitment) {
+                    level = raise(level, WARNING);
+                    reasons.add("No está cumpliendo el plan acordado: " + round(lastWeekHours) + " de "
+                            + round(commitment) + " h en los últimos 7 días.");
+                }
+            }
         }
+
+        //hasta aqui son alertas que el estudiante puede corregir por su cuenta
+        String studentLevel = level;
+        List<String> studentReasons = new ArrayList<>(reasons);
 
         //solicitudes de correccion que esperan respuesta del docente
         LocalDate serverToday = LocalDateTime.now().toLocalDate();
@@ -97,7 +126,7 @@ public class PracticeRiskService {
             reasons.add("Tiene una solicitud de corrección sin responder hace " + oldestPendingDays + " días.");
         }
 
-        return new RiskDTO(level, reasons);
+        return new RiskDTO(level, reasons, studentLevel, studentReasons, requiredWeeklyHours, endDate);
     }
 
     public LocalDate lastLogDate(List<PracticeLog> logs) {

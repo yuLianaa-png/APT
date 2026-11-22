@@ -6,6 +6,7 @@ import { useModoLectura } from '../../hooks/useModoLectura';
 import { grupoService } from '../../services';
 import { formatearHoras } from '../../utils/horas';
 import { formatearFecha } from '../../utils/fechas';
+import { NIVEL_RIESGO } from '../../utils/constants';
 import {
   Aviso, Boton, Cargando, EstadoError, Indicador, Indicadores,
 } from '../../components/ui';
@@ -74,6 +75,34 @@ const ResumenEstudiante = () => {
         />
       </Indicadores>
 
+      {/* Aviso temprano: el estudiante se entera antes de que intervenga el docente. */}
+      {datos.alerta && datos.alerta.nivel !== NIVEL_RIESGO.SIN_ALERTA && (
+        <Aviso
+          tono={datos.alerta.nivel === NIVEL_RIESGO.RIESGO ? 'error' : 'espera'}
+          titulo={datos.alerta.nivel === NIVEL_RIESGO.RIESGO ? 'Tu práctica está en riesgo' : 'Tu práctica necesita atención'}
+        >
+          {datos.alerta.motivos.join(' ')}
+          {typeof datos.alerta.ritmoSemanal === 'number' && datos.alerta.ritmoSemanal > 0 && (
+            <>
+              {' '}
+              <strong>{`Para llegar a la meta a tiempo necesitas unas ${formatearHoras(datos.alerta.ritmoSemanal)} h por semana.`}</strong>
+            </>
+          )}
+          {' '}
+          <Link to={`${base}/mensajes`}>Escríbele a tu docente</Link>
+          {' si necesitas ayuda o más plazo.'}
+        </Aviso>
+      )}
+
+      {/* Plan acordado con el docente, si hay uno. */}
+      {datos.alerta && typeof datos.alerta.compromisoSemanal === 'number' && (
+        <Aviso titulo="Plan acordado con tu docente">
+          {`Compromiso: ${formatearHoras(datos.alerta.compromisoSemanal)} h por semana`}
+          {datos.alerta.fechaTermino && `, con término el ${formatearFecha(datos.alerta.fechaTermino)}`}
+          .
+        </Aviso>
+      )}
+
       {/* RN-06 en palabras, para que nadie lea la barra al 100 % como un final. */}
       {datos.metaAlcanzada && (
         <Aviso tono="exito" titulo="Alcanzaste la meta mínima de horas">
@@ -113,6 +142,9 @@ const ResumenEstudiante = () => {
             {datos.entregasPendientes > 0
               ? `Documentos (${datos.entregasPendientes} por entregar)`
               : 'Documentos'}
+          </Link>
+          <Link className="ph-boton ph-boton--secundario" to={`${base}/mensajes`}>
+            {datos.mensajesNoLeidos > 0 ? `Mensajes (${datos.mensajesNoLeidos} sin leer)` : 'Mensajes'}
           </Link>
           <Link className="ph-boton ph-boton--tenue" to={`${base}/mi-practica`}>
             Datos de la práctica
