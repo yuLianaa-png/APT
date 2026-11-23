@@ -39,6 +39,13 @@ public class InternalSecretFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
+    //el ping de disponibilidad (/health) no lleva la clave: lo usa un servicio externo para
+    //despertar el servicio en Render antes de las tareas programadas. No expone datos.
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return "/health".equals(request.getRequestURI());
+    }
+
     //comparacion en tiempo constante, para no dar pistas sobre la clave
     private boolean matches(String received) {
         if (received == null) return false;
