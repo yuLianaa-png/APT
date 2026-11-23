@@ -33,6 +33,14 @@ envVarGroups:
       - key: SUPABASE_BUCKET
         value: practicahub-files
 
+  # Correo con la API de Brevo (notification-service). Se ingresan a mano al crear el Blueprint.
+  - name: practicashub-correo
+    envVars:
+      - key: BREVO_API_KEY       # Brevo → SMTP & API → API Keys
+        sync: false
+      - key: EMAIL_FROM          # remitente verificado en Brevo
+        sync: false
+
   # Java ajustado a 512 MB y 0,1 CPU: menos memoria y arranque más rápido.
   - name: practicashub-java
     envVars:
@@ -100,6 +108,8 @@ services:
         value: https://practicashub-auth.onrender.com
       - key: NOTIFICATION_SERVICE_URL
         value: https://practicashub-notification.onrender.com
+      - key: FRONTEND_URL        # para armar el enlace que recibe el supervisor
+        value: https://practicashub-front.onrender.com
 
   # ------------------------------------------------------------------ Documentos
   - type: web
@@ -132,6 +142,7 @@ services:
       - fromGroup: practicashub-secretos
       - fromGroup: practicashub-supabase
       - fromGroup: practicashub-java
+      - fromGroup: practicashub-correo
 
   # ------------------------------------------------------------------ Front (React + Vite)
   - type: web

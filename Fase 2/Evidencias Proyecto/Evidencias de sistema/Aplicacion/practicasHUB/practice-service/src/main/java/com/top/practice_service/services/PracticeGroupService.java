@@ -32,8 +32,10 @@ public class PracticeGroupService {
     private RiskFollowUpService followUpService;
     @Autowired
     private PracticeMessageService messageService;
+    @Autowired
+    private SupervisorService supervisorService;
 
-    //nombre de un usuario; si auth-service no responde queda vacio y no se rompe nada
+    //nombre de un usuario - si auth-service no responde queda vacio y no se rompe nada
     public String userName(Long userId) {
         try {
             return authClient.getUserById(userId).getName();
@@ -198,6 +200,7 @@ public class PracticeGroupService {
             //tambien se borran sus mensajes y el seguimiento de sus alertas
             messageService.deleteByEnrollment(enrollment.getEnrollmentId());
             followUpService.deleteByEnrollment(enrollment.getEnrollmentId());
+            supervisorService.deleteByEnrollment(enrollment.getEnrollmentId());
         }
         enrollmentRepository.deleteAll(enrollments);
 

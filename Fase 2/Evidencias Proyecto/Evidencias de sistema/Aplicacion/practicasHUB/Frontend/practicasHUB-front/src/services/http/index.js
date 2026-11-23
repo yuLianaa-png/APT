@@ -31,6 +31,7 @@ import {
   ESTADO_JORNADA,
   ESTADO_SEGUIMIENTO,
   ESTADO_SOLICITUD,
+  ESTADO_VALIDACION,
   NIVEL_RIESGO,
   ROLES,
   STORAGE_KEYS,
@@ -565,6 +566,13 @@ const mapearSolicitud = (log) => {
 };
 
 /** PracticeLog -> jornada del front. */
+/** Revisión del supervisor del centro de práctica. Las jornadas antiguas quedan pendientes. */
+const mapearValidacion = (log) => ({
+  estado: ESTADO_VALIDACION[log.supervisorStatus] ?? ESTADO_VALIDACION.PENDIENTE,
+  comentario: log.supervisorComment ?? null,
+  revisadaEn: instante(log.supervisorReviewedAt),
+});
+
 const mapearJornada = (log, contexto = {}, evidencia = null) => ({
   id: id(log.logId),
   vinculacionId: id(log.idEnrollment),
@@ -585,6 +593,7 @@ const mapearJornada = (log, contexto = {}, evidencia = null) => ({
   creadaEn: instante(log.createdAt),
   actualizadaEn: instante(log.createdAt),
   solicitud: mapearSolicitud(log),
+  validacion: mapearValidacion(log),
 });
 
 /** Filas de LogEvidence -> la evidencia más reciente de cada jornada. */
@@ -1133,6 +1142,9 @@ const TIPOS_NOTIFICACION = {
   FOLLOW_UP_PLAN: [TIPO_NOTIFICACION.PLAN_SEGUIMIENTO, TIPO_REFERENCIA.GRUPO],
   // La referencia es la vinculación: abre esa conversación.
   MESSAGE: [TIPO_NOTIFICACION.MENSAJE_RECIBIDO, TIPO_REFERENCIA.CONVERSACION],
+  // Supervisor del centro de práctica: la referencia es la vinculación.
+  SUPERVISOR_UPDATED: [TIPO_NOTIFICACION.SUPERVISOR_ACTUALIZADO, TIPO_REFERENCIA.VINCULACION],
+  SUPERVISOR_OBSERVATION: [TIPO_NOTIFICACION.OBSERVACION_SUPERVISOR, TIPO_REFERENCIA.VINCULACION],
 };
 
 const tipoDeNotificacion = (notificacion) => {
@@ -1287,4 +1299,79 @@ export const mensajeHttp = {
         noLeidos: Number(c.unread) || 0,
         nivelRiesgo: NIVEL_RIESGO[c.riskLevel] ?? NIVEL_RIESGO.SIN_ALERTA,
       }))),
+};
+
+/* ------------------------------------------------- supervisor del centro de práctica */
+
+/** SupervisorDTO -> supervisor del front. Sin correo, el estudiante todavía no lo registra. */
+const mapearSupervisor = (s) => ({
+  vinculacionId: id(s.enrollmentId),
+  registrado: Boolean(s.email),
+  nombre: s.name ?? '',
+  cargo: s.position ?? '',
+  correo: s.email ?? '',
+  empresa: s.company ?? '',
+  ultimoCorreoEn: instante(s.lastEmailAt),
+  pendientes: Number(s.pendingLogs) || 0,
+  validadas: Number(s.validatedLogs) || 0,
+  observadas: Number(s.observedLogs) || 0,
+  horasValidadas: Number(s.validatedHours) || 0,
+  horasRegistradas: Number(s.registeredHours) || 0,
+});
+
+export const supervisorHttp = {
+  obtener: (vinculacionId) =>
+    api.get(`/enrollments/${vinculacionId}/supervisor`).then(datos).then(mapearSupervisor),
+
+  /** { nombre, cargo, correo, empresa }: lo registra el estudiante o lo corrige el docente. */
+  guardar: (vinculacionId, { nombre, cargo, correo, empresa }) =>
+    api.put(`/enrollments/${vinculacionId}/supervisor`, {
+      name: nombre, position: cargo, email: correo, company: empresa,
+    }).then(datos).then(mapearSupervisor),
+
+  /** Docente: un enlace nuevo para enviarlo por otro medio. */
+  crearEnlace: (vinculacionId) =>
+    api.post(`/enrollments/${vinculacionId}/supervisor/link`)
+      .then(datos).then((e) => ({ url: e.url, venceEn: instante(e.expiresAt) })),
+
+  /** Docente: envía ahora el correo de validación. */
+  enviarAhora: (vinculacionId) =>
+    api.post(`/enrollments/${vinculacionId}/supervisor/send`).then(datos).then(mapearSupervisor),
+};
+
+/** SupervisorViewDTO -> lo que ve el supervisor desde su enlace. */
+const mapearVistaSupervisor = (v) => ({
+  estudiante: v.studentName ?? 'Estudiante',
+  practica: v.groupName ?? '',
+  empresa: v.company ?? '',
+  supervisor: v.supervisorName ?? '',
+  venceEn: instante(v.expiresAt),
+  soloLectura: Boolean(v.readOnly),
+  metaHoras: Number(v.minimumHours) || 0,
+  horasRegistradas: Number(v.registeredHours) || 0,
+  horasValidadas: Number(v.validatedHours) || 0,
+  jornadas: (v.logs ?? []).map((log) => ({
+    id: id(log.logId),
+    fecha: log.logDate,
+    horaInicio: hora(log.startTime),
+    horaTermino: hora(log.endTime),
+    descansoMin: log.breakMinutes ?? 0,
+    horas: Number(log.totalHours) || 0,
+    actividadPrincipal: log.mainActivity ?? log.activitiesDescription ?? '',
+    descripcion: log.mainActivity ? (log.activitiesDescription || null) : null,
+    validacion: mapearValidacion(log),
+  })),
+});
+
+/** Sin sesión: el acceso lo da el token del enlace que recibió el supervisor. */
+export const supervisorPublicoHttp = {
+  ver: (token) =>
+    api.get(`/public/supervisor/${encodeURIComponent(token)}`).then(datos).then(mapearVistaSupervisor),
+
+  /** { validar: [jornadaId], observar: [{ jornadaId, comentario }] } */
+  revisar: (token, { validar = [], observar = [] }) =>
+    api.post(`/public/supervisor/${encodeURIComponent(token)}/logs`, {
+      validate: validar.map(Number),
+      observe: observar.map((o) => ({ logId: Number(o.jornadaId), comment: o.comentario })),
+    }).then(datos).then(mapearVistaSupervisor),
 };

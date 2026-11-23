@@ -31,6 +31,8 @@ const COLECCIONES = [
   'seguimientos',
   'accionesSeguimiento',
   'mensajes',
+  // Enlaces del supervisor del centro de práctica.
+  'enlacesSupervisor',
 ];
 
 const vacio = () => COLECCIONES.reduce((acc, nombre) => ({ ...acc, [nombre]: [] }), {});

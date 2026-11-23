@@ -5,6 +5,7 @@ import { formatearFecha, formatearInstante } from '../../utils/fechas';
 import { formatearHoras } from '../../utils/horas';
 import VistaPreviaGrupo from '../../components/grupo/VistaPreviaGrupo';
 import { Aviso, Cargando, EstadoError } from '../../components/ui';
+import { TarjetaSupervisor } from '../../components/supervisor';
 
 // Página de práctica del estudiante. Se usa en `LayoutGrupo` y se accede desde el menú lateral del grupo.
 
@@ -86,6 +87,9 @@ const MiPracticaEstudiante = () => {
           </Aviso>
         )}
       </div>
+
+      {/* Supervisor del centro de práctica: valida las jornadas desde un enlace. */}
+      <TarjetaSupervisor vinculacionId={vinculacion.id} />
 
       <p className="ph-campo__ayuda">
         {`Vinculación creada el ${formatearInstante(ficha.vinculadoEn)}.`}

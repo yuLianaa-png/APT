@@ -1,5 +1,5 @@
 import { Boton, InsigniaEstado, Tabla } from '../ui';
-import { ESTADO_SOLICITUD } from '../../utils/constants';
+import { ESTADO_SOLICITUD, ESTADO_VALIDACION } from '../../utils/constants';
 import { formatearDescanso, formatearHoras } from '../../utils/horas';
 import { formatearFecha } from '../../utils/fechas';
 import { accionesDisponibles } from '../../utils/estadoJornada';
@@ -98,6 +98,15 @@ const TablaJornadas = ({
                   estado={jornada.solicitud.estado}
                   prefijo="Solicitud"
                 />
+              )}
+              {/* Revisión del supervisor del centro de práctica: es un respaldo, no cambia las horas. */}
+              <InsigniaEstado
+                tipo="validacion"
+                estado={jornada.validacion?.estado ?? ESTADO_VALIDACION.PENDIENTE}
+                prefijo="Supervisor"
+              />
+              {jornada.validacion?.estado === ESTADO_VALIDACION.OBSERVADA && jornada.validacion.comentario && (
+                <span className="ph-campo__ayuda">{`«${jornada.validacion.comentario}»`}</span>
               )}
             </span>
           );

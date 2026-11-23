@@ -52,6 +52,15 @@ public class PracticeLog {
     @Column(name = "teacher_observation", columnDefinition = "TEXT")
     private String teacherObservation;
 
+    //validacion del supervisor del centro de practica (respaldo: las horas cuentan igual)
+    //PENDIENTE, VALIDADA u OBSERVADA; null en jornadas antiguas = PENDIENTE
+    @Column(name = "supervisor_status", length = 20)
+    private String supervisorStatus = "PENDIENTE";
+    @Column(name = "supervisor_comment", columnDefinition = "TEXT")
+    private String supervisorComment;
+    @Column(name = "supervisor_reviewed_at")
+    private LocalDateTime supervisorReviewedAt;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

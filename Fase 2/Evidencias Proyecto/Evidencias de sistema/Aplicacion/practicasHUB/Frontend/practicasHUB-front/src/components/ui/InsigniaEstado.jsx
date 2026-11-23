@@ -4,6 +4,7 @@ import {
   ESTADO_JORNADA,
   ESTADO_SEGUIMIENTO,
   ESTADO_SOLICITUD,
+  ESTADO_VALIDACION,
   ETIQUETAS,
   NIVEL_RIESGO,
   TIPO_DOCUMENTO,
@@ -50,6 +51,11 @@ const TONOS = {
     [ESTADO_SEGUIMIENTO.EN_SEGUIMIENTO]: 'info',
     [ESTADO_SEGUIMIENTO.RESUELTA]: 'exito',
   },
+  // Revisión del supervisor del centro de práctica.
+  validacion: {
+    [ESTADO_VALIDACION.VALIDADA]: 'exito',
+    [ESTADO_VALIDACION.OBSERVADA]: 'espera',
+  },
 };
 
 const CLAVES_ETIQUETA = {
@@ -60,10 +66,11 @@ const CLAVES_ETIQUETA = {
   documento: 'TIPO_DOCUMENTO',
   riesgo: 'NIVEL_RIESGO',
   seguimiento: 'ESTADO_SEGUIMIENTO',
+  validacion: 'ESTADO_VALIDACION',
 };
 
 /**
- * @param {'grupo'|'jornada'|'solicitud'|'entrega'|'documento'|'riesgo'|'seguimiento'} tipo
+ * @param {'grupo'|'jornada'|'solicitud'|'entrega'|'documento'|'riesgo'|'seguimiento'|'validacion'} tipo
  * @param {string} estado valor del enum correspondiente
  * @param {string} [prefijo] texto antes de la etiqueta, p. ej. «Solicitud»
  */

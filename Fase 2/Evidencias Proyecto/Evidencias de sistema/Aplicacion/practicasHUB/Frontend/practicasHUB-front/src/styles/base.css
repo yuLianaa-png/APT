@@ -1533,3 +1533,32 @@ code {
   align-items: flex-end;
 }
 .ph-conversacion__escribir textarea { flex: 1; resize: vertical; }
+
+/* --------------------------------------------- Página pública del supervisor (sin sesión) */
+
+.ph-publica {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--ph-esp-6) var(--ph-esp-4) var(--ph-esp-10);
+}
+.ph-publica__titulo { margin: 0; font-size: var(--ph-txt-xl); }
+
+.ph-revision {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ph-esp-3);
+}
+.ph-revision__jornada p { margin: 0; }
+.ph-revision__descripcion { white-space: pre-wrap; overflow-wrap: break-word; }
+
+/* El botón de enviar queda siempre a mano al bajar por la lista. */
+.ph-publica__pie {
+  position: sticky;
+  bottom: 0;
+  padding: var(--ph-esp-3) 0;
+  background: var(--ph-fondo);
+  border-top: 1px solid var(--ph-borde);
+}

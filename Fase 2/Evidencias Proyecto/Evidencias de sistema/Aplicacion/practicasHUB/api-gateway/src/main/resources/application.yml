@@ -22,6 +22,12 @@ spring:
           filters:
             - AuthenticationFilter
 
+        # Enlace publico del supervisor del centro de practica (sin JWT, lo protege el token del enlace)
+        - id: practice-public
+          uri: ${PRACTICE_SERVICE_URL:http://practice-service:8082}
+          predicates:
+            - Path=/api/public/**
+
         #Rutas de documentos
         - id: document-service
           uri: ${DOCUMENT_SERVICE_URL:http://document-service:8083}

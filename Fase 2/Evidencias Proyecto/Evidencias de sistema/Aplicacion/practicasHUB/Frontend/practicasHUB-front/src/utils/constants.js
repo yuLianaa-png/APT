@@ -96,6 +96,9 @@ export const TIPO_NOTIFICACION = {
   RECORDATORIO_RIESGO: 'RECORDATORIO_RIESGO',
   PLAN_SEGUIMIENTO: 'PLAN_SEGUIMIENTO',
   MENSAJE_RECIBIDO: 'MENSAJE_RECIBIDO',
+  // Supervisor del centro de práctica.
+  SUPERVISOR_ACTUALIZADO: 'SUPERVISOR_ACTUALIZADO',
+  OBSERVACION_SUPERVISOR: 'OBSERVACION_SUPERVISOR',
 };
 
 /** Objeto al que apunta una notificación; `Ver` abre ese elemento dentro del grupo (RN-16). */
@@ -106,6 +109,15 @@ export const TIPO_REFERENCIA = {
   GRUPO: 'GRUPO',
   // Conversación docente-estudiante: el id es la vinculación.
   CONVERSACION: 'CONVERSACION',
+  // Práctica de un estudiante: el id es la vinculación.
+  VINCULACION: 'VINCULACION',
+};
+
+/** Revisión del supervisor del centro de práctica sobre una jornada (respaldo de las horas). */
+export const ESTADO_VALIDACION = {
+  PENDIENTE: 'PENDIENTE',
+  VALIDADA: 'VALIDADA',
+  OBSERVADA: 'OBSERVADA',
 };
 
 /** Estado del seguimiento de una alerta: qué hizo el docente con ella. */
@@ -250,6 +262,13 @@ export const ETIQUETAS = {
     RECORDATORIO_RIESGO: 'Tu práctica necesita atención',
     PLAN_SEGUIMIENTO: 'Plan de seguimiento',
     MENSAJE_RECIBIDO: 'Nuevo mensaje',
+    SUPERVISOR_ACTUALIZADO: 'Supervisor actualizado',
+    OBSERVACION_SUPERVISOR: 'Observación del supervisor',
+  },
+  ESTADO_VALIDACION: {
+    PENDIENTE: 'Sin validar',
+    VALIDADA: 'Validada',
+    OBSERVADA: 'Observada',
   },
   ESTADO_SEGUIMIENTO: {
     ABIERTA: 'Sin gestionar',

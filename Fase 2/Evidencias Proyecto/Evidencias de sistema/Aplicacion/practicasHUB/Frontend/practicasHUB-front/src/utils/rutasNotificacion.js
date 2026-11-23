@@ -64,6 +64,11 @@ export const destinoDe = (notificacion, rol, extras = {}) => {
     case TIPO_REFERENCIA.CONVERSACION:
       return rol === ROLES.DOCENTE ? `${raiz}/mensajes?vinculacion=${id}` : `${raiz}/mensajes`;
 
+    // Práctica de un estudiante (p. ej. observación del supervisor): el docente abre el
+    // detalle de ese estudiante; el estudiante, sus jornadas.
+    case TIPO_REFERENCIA.VINCULACION:
+      return rol === ROLES.DOCENTE ? `${raiz}/estudiantes/${id}` : `${raiz}/jornadas`;
+
     default:
       return null;
   }

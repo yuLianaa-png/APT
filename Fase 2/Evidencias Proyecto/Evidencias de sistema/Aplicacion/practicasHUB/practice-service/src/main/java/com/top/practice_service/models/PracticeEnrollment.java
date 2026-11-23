@@ -38,4 +38,17 @@ public class PracticeEnrollment {
     private String lastReminderLevel;
     @Column(name = "last_reminder_date")
     private LocalDate lastReminderDate;
+
+    //supervisor del centro de practica: valida las jornadas desde un enlace, sin cuenta en el sistema
+    @Column(name = "supervisor_name", length = 120)
+    private String supervisorName;
+    @Column(name = "supervisor_position", length = 100)
+    private String supervisorPosition;
+    @Column(name = "supervisor_email", length = 150)
+    private String supervisorEmail;
+    @Column(name = "supervisor_company", length = 150)
+    private String supervisorCompany;
+    //ultimo correo de validacion enviado al supervisor
+    @Column(name = "supervisor_last_email_at")
+    private LocalDateTime supervisorLastEmailAt;
 }

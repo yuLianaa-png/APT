@@ -25,6 +25,17 @@ public class JwtAuthenticationFilter implements GlobalFilter {
             return chain.filter(exchange);
         }
 
+        //enlace del supervisor del centro de practica: no tiene sesion, el acceso lo da el token del enlace.
+        if (path.startsWith("/api/public/")) {
+            ServerHttpRequest request = exchange.getRequest().mutate()
+                    .headers(headers -> {
+                        headers.remove("X-User-Id");
+                        headers.remove("X-User-Role");
+                    })
+                    .build();
+            return chain.filter(exchange.mutate().request(request).build());
+        }
+
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

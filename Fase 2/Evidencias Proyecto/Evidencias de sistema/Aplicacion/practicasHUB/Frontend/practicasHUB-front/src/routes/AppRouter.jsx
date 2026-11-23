@@ -27,6 +27,7 @@ import DocumentosDocente from '../pages/Documentos/DocumentosDocente.jsx';
 import DocumentosEstudiante from '../pages/Documentos/DocumentosEstudiante.jsx';
 import MensajesEstudiante from '../pages/Mensajes/MensajesEstudiante.jsx';
 import MensajesDocente from '../pages/Mensajes/MensajesDocente.jsx';
+import ValidarJornadas from '../pages/Supervisor/ValidarJornadas.jsx';
 import GaleriaUI from '../pages/_dev/GaleriaUI.jsx';
 
 /**
@@ -41,6 +42,9 @@ const AppRouter = () => (
   <Routes>
     <Route path="/login" element={<Login />} />
     <Route path="/registro" element={<Registro />} />
+
+    {/* Supervisor del centro de práctica: entra con el enlace del correo, sin cuenta. */}
+    <Route path="/supervisor/:token" element={<ValidarJornadas />} />
 
     {/* Galería del sistema de diseño. Solo en desarrollo. */}
     {import.meta.env.DEV && <Route path="/_ui" element={<GaleriaUI />} />}

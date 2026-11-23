@@ -38,7 +38,7 @@ public class PracticeLogService {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    //nombre del estudiante para los mensajes; si auth-service no responde se usa un generico
+    //nombre del estudiante para los mensajes - si auth-service no responde se usa un generico
     private String studentName(Long studentId) {
         try {
             String name = authClient.getUserById(studentId).getName();
@@ -197,6 +197,10 @@ public class PracticeLogService {
         log.setTotalHours(newTotalHours);
         log.setMainActivity(updatedData.getMainActivity());
         log.setActivitiesDescription(updatedData.getActivitiesDescription());
+        //si la jornada cambia, el supervisor tiene que volver a revisarla
+        log.setSupervisorStatus("PENDIENTE");
+        log.setSupervisorComment(null);
+        log.setSupervisorReviewedAt(null);
 
         if (isTeacherEnabled) {
             log.setCorrectionReason(null);

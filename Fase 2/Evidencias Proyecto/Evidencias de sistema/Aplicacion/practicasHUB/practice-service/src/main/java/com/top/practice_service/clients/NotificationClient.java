@@ -1,7 +1,9 @@
 package com.top.practice_service.clients;
 
+import com.top.practice_service.DTO.EmailRequestDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -31,4 +33,7 @@ public interface NotificationClient {
             @RequestParam("message") String message,
             @RequestParam(value = "actionUrl", required = false) String actionUrl,
             @RequestParam(value = "referenceId", required = false) Long referenceId);
+
+    @PostMapping("/internal/emails")
+    void sendEmail(@RequestBody EmailRequestDTO email);
 }

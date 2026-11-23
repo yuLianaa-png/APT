@@ -205,3 +205,46 @@ Responde a la pregunta «¿qué pasa si el estudiante no alcanza las horas y qui
 
 ### Variable de entorno nueva
 `MESSAGE_KEY`: va en `.env` en local y en el grupo `practicashub-secretos` en Render (el Blueprint la genera). Si se cambia, los mensajes antiguos ya no se pueden leer.
+
+## Supervisor del centro de práctica (etapa 1: validación de horas)
+
+El supervisor de la empresa valida las jornadas desde un enlace que le llega por correo. **No necesita cuenta.** La validación es un respaldo: las horas cuentan igual para la meta.
+
+### Flujo
+1. El estudiante registra a su supervisor en *Datos de la práctica* (nombre, cargo, empresa y correo). El docente puede corregir estos datos y recibe un aviso cuando el estudiante los cambia.
+2. Cada lunes a las 9:30 (America/Santiago), cada supervisor con jornadas pendientes recibe un correo con su enlace. No se le repite el correo si se le envió uno hace menos de 6 días.
+3. Desde el enlace (`/supervisor/:token`), el supervisor valida u observa cada jornada. Las observaciones deben tener un comentario de 5 a 500 caracteres. El docente y el estudiante reciben una notificación, que no incluye el comentario.
+4. En el detalle del estudiante, el docente tiene **Enviar correo ahora** y **Copiar enlace**. Este último sirve para mandar el enlace por WhatsApp o por su propio correo si el de Brevo cae en spam.
+5. Si el estudiante corrige una jornada, esta vuelve a quedar pendiente para el supervisor.
+
+### Seguridad del enlace
+- El token tiene 256 bits aleatorios. En la tabla `supervisor_access_tokens` solo se guarda su hash SHA-256.
+- Vence a los 7 días y sirve para una sola vinculación.
+- Deja de servir si cambia el correo del supervisor.
+- Si la práctica está inactiva, el enlace solo permite consultar.
+- El supervisor no puede ser el estudiante ni el docente: se compara su correo con el de ellos.
+- El gateway deja pasar `/api/public/**` sin JWT y **borra** `X-User-Id` / `X-User-Role` de esas peticiones.
+
+### Endpoints nuevos
+| Método | Ruta | Quién |
+|---|---|---|
+| GET / PUT | `/api/enrollments/{id}/supervisor` `{name, position, email, company}` | estudiante de la vinculación o docente del grupo |
+| POST | `/api/enrollments/{id}/supervisor/link` | docente |
+| POST | `/api/enrollments/{id}/supervisor/send` | docente |
+| GET | `/api/public/supervisor/{token}` | supervisor (token) |
+| POST | `/api/public/supervisor/{token}/logs` `{validate: [logId], observe: [{logId, comment}]}` | supervisor (token) |
+| POST | `/internal/emails` (notification-service) | solo entre microservicios |
+
+### Correo (Brevo)
+- notification-service envía los correos por la **API HTTP** de Brevo, no por SMTP, porque Render bloquea los puertos SMTP en el plan gratis.
+- Sin `BREVO_API_KEY` el correo no se envía: se muestra en la consola junto con el enlace, para poder probar el flujo en local.
+- Al no tener dominio propio, Brevo cambia el remitente y los correos pueden caer en spam. Por eso existe *Copiar enlace*.
+
+### Variables nuevas
+| Variable | Servicio | Valor |
+|---|---|---|
+| `BREVO_API_KEY` | notification-service | Brevo → SMTP & API → API Keys |
+| `EMAIL_FROM` | notification-service | remitente verificado en Brevo |
+| `FRONTEND_URL` | practice-service | `https://practicashub-front.onrender.com` (en local, `http://localhost:5173`) |
+
+En Render, `BREVO_API_KEY` y `EMAIL_FROM` van en el grupo nuevo `practicashub-correo` (se ingresan a mano), y `FRONTEND_URL` ya viene en `render.yaml`.

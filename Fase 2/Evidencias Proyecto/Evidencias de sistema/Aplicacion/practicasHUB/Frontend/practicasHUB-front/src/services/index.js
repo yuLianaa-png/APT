@@ -19,6 +19,7 @@ export { entregaService } from './entrega.service';
 export { notificacionService } from './notificacion.service';
 export { seguimientoService } from './seguimiento.service';
 export { mensajeService } from './mensaje.service';
+export { supervisorService, supervisorPublicoService } from './supervisor.service';
 export { archivoService } from './archivo.service';
 export { relojService } from './reloj.service';
 
