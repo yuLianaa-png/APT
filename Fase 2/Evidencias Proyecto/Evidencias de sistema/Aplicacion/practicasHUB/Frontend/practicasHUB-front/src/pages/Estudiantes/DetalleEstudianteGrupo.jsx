@@ -12,6 +12,7 @@ import {
 import { DescargarArchivo } from '../../components/archivos';
 import { PanelSeguimiento } from '../../components/seguimiento';
 import { TarjetaSupervisor } from '../../components/supervisor';
+import { TarjetaEvaluaciones } from '../../components/evaluacion';
 import { baseDeGrupo } from '../../routes/navegacion';
 
 // Página de detalle de un estudiante del grupo, vista por el docente. Se accede con «Ver estudiante» desde la sección Estudiantes.
@@ -186,6 +187,8 @@ const DetalleEstudianteGrupo = () => {
           />
 
           <TarjetaSupervisor vinculacionId={vinculacionId} esDocente />
+
+          <TarjetaEvaluaciones vinculacionId={vinculacionId} esDocente />
 
           <div className="ph-tarjeta ph-pila">
             <div>

@@ -71,6 +71,9 @@ const TarjetaDocumento = ({
                 return (
                   <span className="ph-celda-principal">
                     <InsigniaEstado tipo="entrega" estado={entrega.estado} />
+                    {entrega.desactualizada && (
+                      <span className="ph-campo__ayuda">{`Entregó con la versión ${entrega.versionDocumentoUsada}: debe volver a entregar.`}</span>
+                    )}
                     {entrega.comentarioCorreccion && (
                       <span className="ph-campo__ayuda">{entrega.comentarioCorreccion}</span>
                     )}

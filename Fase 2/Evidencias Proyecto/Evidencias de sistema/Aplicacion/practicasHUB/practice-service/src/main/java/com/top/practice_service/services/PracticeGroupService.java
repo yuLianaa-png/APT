@@ -34,6 +34,10 @@ public class PracticeGroupService {
     private PracticeMessageService messageService;
     @Autowired
     private SupervisorService supervisorService;
+    @Autowired
+    private EvaluationTemplateService evaluationTemplateService;
+    @Autowired
+    private SupervisorEvaluationService evaluationService;
 
     //nombre de un usuario - si auth-service no responde queda vacio y no se rompe nada
     public String userName(Long userId) {
@@ -50,7 +54,7 @@ public class PracticeGroupService {
         return group;
     }
 
-    //todos los grupos de un docente: su nombre se busca una sola vez
+    //todos los grupos de un docente. su nombre se busca una sola vez
     public List<PracticeGroup> withProfessorName(List<PracticeGroup> groups) {
         if (groups.isEmpty()) return groups;
         String name = userName(groups.get(0).getIdProfessor());
@@ -201,8 +205,10 @@ public class PracticeGroupService {
             messageService.deleteByEnrollment(enrollment.getEnrollmentId());
             followUpService.deleteByEnrollment(enrollment.getEnrollmentId());
             supervisorService.deleteByEnrollment(enrollment.getEnrollmentId());
+            evaluationService.deleteByEnrollment(enrollment.getEnrollmentId());
         }
         enrollmentRepository.deleteAll(enrollments);
+        evaluationTemplateService.deleteByGroup(groupId);
 
         practiceGroupRepository.delete(group);
     }

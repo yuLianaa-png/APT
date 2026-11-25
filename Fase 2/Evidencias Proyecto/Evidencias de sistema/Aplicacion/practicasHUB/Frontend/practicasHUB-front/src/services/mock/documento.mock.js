@@ -23,6 +23,7 @@ import { ahoraISO } from './reloj';
 import {
   exigirExista, exigirGrupoActivo, fallar, notificarAlGrupo, responder,
 } from './soporte';
+import { conVersionVigente } from '../../utils/entregas';
 
 /** Documentos del grupo, el más reciente primero. Disponibles también si está INACTIVO. */
 export const listarPorGrupo = (grupoId) =>
@@ -169,7 +170,7 @@ export const tarjetaDocente = (documentoId) => {
   const entregas = listar('entregas')
     .filter((entrega) => entrega.documentoId === documentoId)
     .map((entrega) => ({
-      ...entrega,
+      ...conVersionVigente(entrega, documento.versionVigente),
       estudianteNombre: usuarios.find((u) => u.id === entrega.estudianteId)?.nombre ?? '',
       versionVigente: entrega.versiones.length,
       ultimoEnvio: entrega.versiones.at(-1)?.enviadaEn ?? null,
@@ -220,7 +221,7 @@ export const listarConEntregas = (grupoId) => {
         };
 
         return {
-          ...base,
+          ...conVersionVigente(base, documento.versionVigente),
           estudianteNombre: usuarios.find((u) => u.id === base.estudianteId)?.nombre ?? '',
           versionVigente: base.versiones.length,
           ultimoEnvio: base.versiones.at(-1)?.enviadaEn ?? null,
@@ -261,7 +262,7 @@ export const listarParaEstudiante = (grupoId, estudianteId) => {
 
       return {
         documento,
-        entrega: propia ?? {
+        entrega: conVersionVigente(propia ?? {
           id: null,
           documentoId: documento.id,
           vinculacionId: null,
@@ -270,7 +271,7 @@ export const listarParaEstudiante = (grupoId, estudianteId) => {
           comentarioCorreccion: null,
           versionDocumentoUsada: documento.versionVigente,
           versiones: [],
-        },
+        }, documento.versionVigente),
       };
     });
 

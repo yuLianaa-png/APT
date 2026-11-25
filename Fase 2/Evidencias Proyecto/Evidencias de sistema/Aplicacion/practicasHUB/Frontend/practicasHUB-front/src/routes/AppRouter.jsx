@@ -27,6 +27,8 @@ import DocumentosDocente from '../pages/Documentos/DocumentosDocente.jsx';
 import DocumentosEstudiante from '../pages/Documentos/DocumentosEstudiante.jsx';
 import MensajesEstudiante from '../pages/Mensajes/MensajesEstudiante.jsx';
 import MensajesDocente from '../pages/Mensajes/MensajesDocente.jsx';
+import EvaluacionDocente from '../pages/Evaluacion/EvaluacionDocente.jsx';
+import EvaluarEstudiante from '../pages/Supervisor/EvaluarEstudiante.jsx';
 import ValidarJornadas from '../pages/Supervisor/ValidarJornadas.jsx';
 import GaleriaUI from '../pages/_dev/GaleriaUI.jsx';
 
@@ -45,6 +47,7 @@ const AppRouter = () => (
 
     {/* Supervisor del centro de práctica: entra con el enlace del correo, sin cuenta. */}
     <Route path="/supervisor/:token" element={<ValidarJornadas />} />
+    <Route path="/supervisor/evaluacion/:token" element={<EvaluarEstudiante />} />
 
     {/* Galería del sistema de diseño. Solo en desarrollo. */}
     {import.meta.env.DEV && <Route path="/_ui" element={<GaleriaUI />} />}
@@ -89,6 +92,8 @@ const AppRouter = () => (
         <Route path="jornadas/:vinculacionId" element={<HistorialIndividualDocente />} />
         <Route path="documentos" element={<DocumentosDocente />} />
         <Route path="mensajes" element={<MensajesDocente />} />
+        {/* Evaluación del centro de práctica: cuántas evaluaciones y sus pautas. */}
+        <Route path="evaluacion" element={<EvaluacionDocente />} />
         <Route path="notificaciones" element={<NotificacionesGrupo />} />
       </Route>
     </Route>

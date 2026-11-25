@@ -33,6 +33,10 @@ const COLECCIONES = [
   'mensajes',
   // Enlaces del supervisor del centro de práctica.
   'enlacesSupervisor',
+  // Pautas de evaluación del centro de práctica.
+  'pautas',
+  // Evaluaciones del supervisor (con sus respuestas dentro).
+  'evaluaciones',
 ];
 
 const vacio = () => COLECCIONES.reduce((acc, nombre) => ({ ...acc, [nombre]: [] }), {});

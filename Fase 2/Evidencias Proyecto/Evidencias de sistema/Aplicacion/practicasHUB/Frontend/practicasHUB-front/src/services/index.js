@@ -20,6 +20,8 @@ export { notificacionService } from './notificacion.service';
 export { seguimientoService } from './seguimiento.service';
 export { mensajeService } from './mensaje.service';
 export { supervisorService, supervisorPublicoService } from './supervisor.service';
+export { pautaService } from './pauta.service';
+export { evaluacionService, evaluacionPublicaService } from './evaluacion.service';
 export { archivoService } from './archivo.service';
 export { relojService } from './reloj.service';
 

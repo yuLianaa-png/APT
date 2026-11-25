@@ -31,7 +31,7 @@ describe('menú interno del grupo (§2.2)', () => {
 
   it('el docente ve Estudiantes donde el estudiante ve Mi práctica', () => {
     expect(menuDeGrupo(ROLES.DOCENTE, 'gru_1').map((e) => e.etiqueta))
-      .toEqual(['Resumen', 'Estudiantes', 'Jornadas', 'Documentos', 'Mensajes', 'Notificaciones']);
+      .toEqual(['Resumen', 'Estudiantes', 'Jornadas', 'Documentos', 'Evaluación', 'Mensajes', 'Notificaciones']);
   });
 
   it('todas las rutas internas llevan el grupo en la URL (RN-04)', () => {

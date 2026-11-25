@@ -148,7 +148,10 @@ public class DocumentUploadService {
 
         if (existingOpt.isPresent()) {
             DocumentSubmission existing = existingOpt.get();
-            if (!"Corrección solicitada".equalsIgnoreCase(existing.getStatus())) {
+            //si el docente cambio el archivo despues de la entrega, hay que volver a entregar con la version nueva
+            boolean outdated = existing.getDocumentVersion() != null && activeDoc.getVersion() != null
+                    && existing.getDocumentVersion() < activeDoc.getVersion();
+            if (!"Corrección solicitada".equalsIgnoreCase(existing.getStatus()) && !outdated) {
                 throw new IllegalStateException("No puedes reemplazar esta entrega. El docente no ha solicitado una corrección.");
             }
 

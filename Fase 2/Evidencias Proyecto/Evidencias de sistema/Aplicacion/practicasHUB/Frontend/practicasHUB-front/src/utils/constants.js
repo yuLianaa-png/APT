@@ -99,6 +99,10 @@ export const TIPO_NOTIFICACION = {
   // Supervisor del centro de práctica.
   SUPERVISOR_ACTUALIZADO: 'SUPERVISOR_ACTUALIZADO',
   OBSERVACION_SUPERVISOR: 'OBSERVACION_SUPERVISOR',
+  // Evaluación del centro de práctica.
+  EVALUACION_SIN_PAUTA: 'EVALUACION_SIN_PAUTA',
+  EVALUACION_RECIBIDA: 'EVALUACION_RECIBIDA',
+  EVALUACION_PUBLICADA: 'EVALUACION_PUBLICADA',
 };
 
 /** Objeto al que apunta una notificación; `Ver` abre ese elemento dentro del grupo (RN-16). */
@@ -111,7 +115,48 @@ export const TIPO_REFERENCIA = {
   CONVERSACION: 'CONVERSACION',
   // Práctica de un estudiante: el id es la vinculación.
   VINCULACION: 'VINCULACION',
+  // Configuración de la evaluación del grupo: el id es el grupo.
+  EVALUACION: 'EVALUACION',
 };
+
+/** Cuántas evaluaciones hace el centro de práctica y cuándo. */
+export const MODO_EVALUACION = {
+  UNA_INTERMEDIA: 'UNA_INTERMEDIA',
+  UNA_FINAL: 'UNA_FINAL',
+  DOS_MISMA: 'DOS_MISMA',
+  DOS_DISTINTAS: 'DOS_DISTINTAS',
+};
+
+/** Qué pauta es: la del 50 %, la del 100 % o una misma para las dos. */
+export const ESPACIO_PAUTA = {
+  INTERMEDIA: 'INTERMEDIA',
+  FINAL: 'FINAL',
+  AMBAS: 'AMBAS',
+};
+
+export const ESTADO_PAUTA = {
+  BORRADOR: 'BORRADOR',
+  PUBLICADA: 'PUBLICADA',
+};
+
+/** Tipos de criterio de una pauta. */
+export const TIPO_CRITERIO = {
+  NOTA: 'NOTA',
+  CALCULADO: 'CALCULADO',
+  ACTIVIDADES: 'ACTIVIDADES',
+  TEXTO: 'TEXTO',
+};
+
+/** Estado de la evaluación del supervisor en un hito. */
+export const ESTADO_EVALUACION = {
+  SIN_ENVIAR: 'SIN_ENVIAR',
+  ESPERANDO_PAUTA: 'ESPERANDO_PAUTA',
+  ENVIADA: 'ENVIADA',
+  RESPONDIDA: 'RESPONDIDA',
+};
+
+/** Máximo de actividades que puede escribir el supervisor en una pauta. */
+export const MAXIMO_ACTIVIDADES = 30;
 
 /** Revisión del supervisor del centro de práctica sobre una jornada (respaldo de las horas). */
 export const ESTADO_VALIDACION = {
@@ -264,6 +309,31 @@ export const ETIQUETAS = {
     MENSAJE_RECIBIDO: 'Nuevo mensaje',
     SUPERVISOR_ACTUALIZADO: 'Supervisor actualizado',
     OBSERVACION_SUPERVISOR: 'Observación del supervisor',
+    EVALUACION_SIN_PAUTA: 'Evaluación sin pauta',
+    EVALUACION_RECIBIDA: 'Evaluación del supervisor recibida',
+    EVALUACION_PUBLICADA: 'Evaluación del supervisor',
+  },
+  ESTADO_EVALUACION: {
+    SIN_ENVIAR: 'Sin enviar',
+    ESPERANDO_PAUTA: 'Esperando la pauta',
+    ENVIADA: 'Enviada al supervisor',
+    RESPONDIDA: 'Respondida',
+  },
+  MODO_EVALUACION: {
+    UNA_INTERMEDIA: 'Una evaluación, al 50 % de las horas',
+    UNA_FINAL: 'Una evaluación, al terminar (100 % de las horas)',
+    DOS_MISMA: 'Dos evaluaciones (50 % y 100 %) con la misma pauta',
+    DOS_DISTINTAS: 'Dos evaluaciones (50 % y 100 %) con pautas distintas',
+  },
+  ESTADO_PAUTA: {
+    BORRADOR: 'Borrador',
+    PUBLICADA: 'Publicada',
+  },
+  TIPO_CRITERIO: {
+    NOTA: 'Criterio con nota (1 a 7)',
+    CALCULADO: 'Calculado (promedio de otra sección)',
+    ACTIVIDADES: 'Actividades que escribe el supervisor',
+    TEXTO: 'Respuesta abierta (sin nota)',
   },
   ESTADO_VALIDACION: {
     PENDIENTE: 'Sin validar',

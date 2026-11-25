@@ -42,6 +42,8 @@ import {
 import { anioDelGrupo, esFechaFutura, formatearFecha } from '../../utils/fechas';
 import { avanceMeta, validarDuracion } from '../../utils/horas';
 import { validarArchivo } from '../../utils/archivos';
+import { validarPlantilla } from '../../utils/pauta';
+import { conVersionVigente } from '../../utils/entregas';
 
 /* ------------------------------------------------------------------ utilidades */
 
@@ -918,7 +920,8 @@ const mapearEntrega = (documento, vinculacionId, estudianteId, filasSubmission) 
   let estado = ESTADO_ENTREGA.PENDIENTE;
   if (activa) estado = esCorreccion(activa.status) ? ESTADO_ENTREGA.CORRECCION_SOLICITADA : ESTADO_ENTREGA.ENTREGADO;
 
-  return {
+  // Si el docente cambió el archivo después de la entrega, vuelve a quedar Pendiente.
+  return conVersionVigente({
     id: idEntrega(documento.id, id(vinculacionId), activa ? id(activa.submissionId) : null),
     documentoId: documento.id,
     vinculacionId: id(vinculacionId),
@@ -931,7 +934,7 @@ const mapearEntrega = (documento, vinculacionId, estudianteId, filasSubmission) 
       archivo: mapearArchivo(f, 'ent', f.submissionId),
       enviadaEn: instante(f.submissionDate),
     })),
-  };
+  }, documento.versionVigente);
 };
 
 /** Fila de la tarjeta del docente: la entrega más el nombre del estudiante. */
@@ -1145,6 +1148,10 @@ const TIPOS_NOTIFICACION = {
   // Supervisor del centro de práctica: la referencia es la vinculación.
   SUPERVISOR_UPDATED: [TIPO_NOTIFICACION.SUPERVISOR_ACTUALIZADO, TIPO_REFERENCIA.VINCULACION],
   SUPERVISOR_OBSERVATION: [TIPO_NOTIFICACION.OBSERVACION_SUPERVISOR, TIPO_REFERENCIA.VINCULACION],
+  // Evaluación del centro de práctica.
+  EVALUATION_WAITING_TEMPLATE: [TIPO_NOTIFICACION.EVALUACION_SIN_PAUTA, TIPO_REFERENCIA.EVALUACION],
+  EVALUATION_SUBMITTED: [TIPO_NOTIFICACION.EVALUACION_RECIBIDA, TIPO_REFERENCIA.VINCULACION],
+  EVALUATION_PUBLISHED: [TIPO_NOTIFICACION.EVALUACION_PUBLICADA, TIPO_REFERENCIA.EVALUACION],
 };
 
 const tipoDeNotificacion = (notificacion) => {
@@ -1374,4 +1381,196 @@ export const supervisorPublicoHttp = {
       validate: validar.map(Number),
       observe: observar.map((o) => ({ logId: Number(o.jornadaId), comment: o.comentario })),
     }).then(datos).then(mapearVistaSupervisor),
+};
+
+/* ---------------------------------------- pautas de evaluación del centro de práctica */
+
+/** Sección/ítem del backend -> pauta del front (sin claves: las pone el editor). */
+const mapearSecciones = (secciones) => (secciones ?? []).map((s) => ({
+  titulo: s.title ?? '',
+  cuentaParaNota: Boolean(s.countsForFinal),
+  criterios: (s.items ?? []).map((i) => ({
+    tipo: i.type,
+    texto: i.label ?? '',
+    admiteNoAplica: Boolean(i.allowNotApplicable),
+    ponderacion: i.weight ?? null,
+    seccionOrigen: i.sourceSection ?? null,
+    minimoActividades: i.minActivities ?? null,
+  })),
+}));
+
+const mapearPauta = (p) => (p ? {
+  id: id(p.templateId),
+  espacio: p.slot,
+  version: p.version ?? 1,
+  estado: p.status,
+  bloqueada: Boolean(p.locked),
+  instrucciones: p.instructions ?? '',
+  secciones: mapearSecciones(p.sections),
+  actualizadaEn: instante(p.updatedAt),
+  publicadaEn: instante(p.publishedAt),
+} : null);
+
+const mapearConfiguracion = (c) => ({
+  grupoId: id(c.groupId),
+  modo: c.mode ?? null,
+  modoEditable: c.modeEditable !== false,
+  espacios: (c.slots ?? []).map((e) => ({
+    espacio: e.slot,
+    etiqueta: e.label,
+    publicada: mapearPauta(e.published),
+    borrador: mapearPauta(e.draft),
+  })),
+});
+
+const pautaAlBackend = (pauta) => ({
+  instructions: String(pauta.instrucciones ?? '').trim() || null,
+  sections: (pauta.secciones ?? []).map((s) => ({
+    title: String(s.titulo ?? '').trim(),
+    countsForFinal: Boolean(s.cuentaParaNota),
+    items: s.criterios.map((c) => ({
+      type: c.tipo,
+      label: String(c.texto ?? '').trim(),
+      allowNotApplicable: Boolean(c.admiteNoAplica),
+      weight: c.ponderacion === '' || c.ponderacion === null || c.ponderacion === undefined
+        ? null : Number(String(c.ponderacion).replace(',', '.')),
+      sourceSection: c.seccionOrigen === '' || c.seccionOrigen === null || c.seccionOrigen === undefined
+        ? null : Number(c.seccionOrigen),
+      minActivities: c.minimoActividades === '' || c.minimoActividades === null || c.minimoActividades === undefined
+        ? null : Number(c.minimoActividades),
+    })),
+  })),
+});
+
+export const pautaHttp = {
+  configuracion: (grupoId) =>
+    api.get(`/groups/${grupoId}/evaluation`).then(datos).then(mapearConfiguracion),
+
+  elegirModo: (grupoId, modo) =>
+    api.put(`/groups/${grupoId}/evaluation/mode`, { mode: modo }).then(datos).then(mapearConfiguracion),
+
+  /** Lee la plantilla y devuelve un borrador para revisar. El archivo no se guarda. */
+  analizarPlantilla: async (archivo) => {
+    const problema = validarPlantilla(archivo);
+    if (problema) throw fallo(ERRORES.ARCHIVO_INVALIDO, problema);
+    const cuerpo = new FormData();
+    cuerpo.append('file', archivo);
+    const r = await api.post('/documents/evaluation-templates/parse', cuerpo, multipart).then(datos);
+    return {
+      instrucciones: r.instructions ?? '',
+      secciones: mapearSecciones(r.sections),
+      advertencias: r.warnings ?? [],
+      escala: r.detectedScale ?? 7,
+      formato: r.sourceFormat ?? null,
+    };
+  },
+
+  guardarBorrador: (grupoId, espacio, pauta) =>
+    api.put(`/groups/${grupoId}/evaluation/templates/${espacio}`, pautaAlBackend(pauta))
+      .then(datos).then(mapearConfiguracion),
+
+  publicar: (grupoId, espacio) =>
+    api.post(`/groups/${grupoId}/evaluation/templates/${espacio}/publish`).then(datos).then(mapearConfiguracion),
+
+  descartarBorrador: (grupoId, espacio) =>
+    api.delete(`/groups/${grupoId}/evaluation/templates/${espacio}/draft`).then(datos).then(mapearConfiguracion),
+};
+
+/* --------------------------------------------- evaluaciones del supervisor (etapa 3) */
+
+/** Respuestas del backend -> forma del front (ver respuestasVacias en utils/pauta.js). */
+const mapearRespuestas = (r) => (r?.sections ?? []).map((seccion) => ({
+  criterios: (seccion.items ?? []).map((i) => ({
+    nota: i.grade ?? null,
+    noAplica: Boolean(i.notApplicable),
+    texto: i.text ?? '',
+    actividades: (i.activities ?? []).map((a) => ({ descripcion: a.description ?? '', nota: a.grade ?? null })),
+  })),
+}));
+
+const respuestasAlBackend = (respuestas) => ({
+  sections: (respuestas ?? []).map((seccion) => ({
+    items: seccion.criterios.map((c) => ({
+      grade: c.noAplica || c.nota === null || c.nota === '' ? null : Number(c.nota),
+      notApplicable: Boolean(c.noAplica),
+      text: c.texto ?? '',
+      activities: (c.actividades ?? []).map((a) => ({
+        description: a.descripcion ?? '',
+        grade: a.nota === null || a.nota === '' ? null : Number(a.nota),
+      })),
+    })),
+  })),
+});
+
+const mapearEvaluacion = (e) => ({
+  id: id(e.evaluationId),
+  hito: e.milestone,
+  etiqueta: e.label ?? '',
+  estado: e.status,
+  horasRequeridas: e.requiredHours ?? null,
+  alcanzado: Boolean(e.reached),
+  enviadaEn: instante(e.sentAt),
+  recordatorios: Number(e.reminderCount) || 0,
+  supervisor: e.supervisorName ?? null,
+  respondidaEn: instante(e.submittedAt),
+  nota: e.finalGrade ?? null,
+  notasPorSeccion: e.sectionGrades ?? null,
+  publicada: Boolean(e.publishedToStudent),
+  publicadaEn: instante(e.publishedAt),
+  pauta: mapearPauta(e.template),
+  respuestas: e.answers ? mapearRespuestas(e.answers) : null,
+});
+
+const mapearResultados = (lista) => (lista ?? []).map((r) => ({
+  hito: r.milestone,
+  etiqueta: r.label,
+  esperandoPauta: Number(r.waitingTemplate) || 0,
+  enviadas: Number(r.sent) || 0,
+  respondidas: Number(r.answered) || 0,
+  publicadas: Number(r.published) || 0,
+}));
+
+export const evaluacionHttp = {
+  /** Docente: todos los hitos. Estudiante: solo las evaluaciones que el docente publicó. */
+  deVinculacion: (vinculacionId) =>
+    api.get(`/enrollments/${vinculacionId}/evaluations`).then((r) => (r.data ?? []).map(mapearEvaluacion)),
+
+  enviarAhora: (vinculacionId, hito) =>
+    api.post(`/enrollments/${vinculacionId}/evaluations/${hito}/send`).then(datos).then(mapearEvaluacion),
+
+  crearEnlace: (vinculacionId, hito) =>
+    api.post(`/enrollments/${vinculacionId}/evaluations/${hito}/link`)
+      .then(datos).then((e) => ({ url: e.url, venceEn: instante(e.expiresAt) })),
+
+  publicar: (vinculacionId, hito) =>
+    api.post(`/enrollments/${vinculacionId}/evaluations/${hito}/publish`).then(datos).then(mapearEvaluacion),
+
+  resultadosDelGrupo: (grupoId) =>
+    api.get(`/groups/${grupoId}/evaluation/results`).then(datos).then(mapearResultados),
+
+  publicarDelGrupo: (grupoId, hito) =>
+    api.post(`/groups/${grupoId}/evaluation/results/${hito}/publish`).then(datos).then(mapearResultados),
+};
+
+const mapearVistaEvaluacion = (v) => ({
+  estudiante: v.studentName ?? 'Estudiante',
+  practica: v.groupName ?? '',
+  empresa: v.company ?? '',
+  supervisor: v.supervisorName ?? '',
+  etiqueta: v.label ?? 'Evaluación',
+  venceEn: instante(v.expiresAt),
+  enviada: Boolean(v.submitted),
+  enviadaEn: instante(v.submittedAt),
+  soloLectura: Boolean(v.readOnly),
+  pauta: mapearPauta(v.template),
+});
+
+/** Sin sesión: el acceso lo da el token del enlace de evaluación. */
+export const evaluacionPublicaHttp = {
+  ver: (token) =>
+    api.get(`/public/evaluation/${encodeURIComponent(token)}`).then(datos).then(mapearVistaEvaluacion),
+
+  enviar: (token, respuestas) =>
+    api.post(`/public/evaluation/${encodeURIComponent(token)}`, respuestasAlBackend(respuestas))
+      .then(datos).then(mapearVistaEvaluacion),
 };

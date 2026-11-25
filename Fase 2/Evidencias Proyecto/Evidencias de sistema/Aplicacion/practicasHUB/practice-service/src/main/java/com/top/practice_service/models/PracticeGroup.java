@@ -41,9 +41,13 @@ public class PracticeGroup {
 
     private LocalDateTime creationDate = LocalDateTime.now();
 
-    //fecha de termino de la practica (opcional): permite estimar si el ritmo alcanza la meta
+    //fecha de termino de la practica (opcional). permite estimar si el ritmo alcanza la meta
     @Column(name = "end_date")
     private LocalDate endDate;
+
+    //evaluacion del centro de practica: UNA_INTERMEDIA, UNA_FINAL, DOS_MISMA o DOS_DISTINTAS (null = sin configurar)
+    @Column(name = "evaluation_mode", length = 20)
+    private String evaluationMode;
 
     //no se guarda en la base de datos, solo se completa al responder
     @Transient

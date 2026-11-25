@@ -248,3 +248,86 @@ El supervisor de la empresa valida las jornadas desde un enlace que le llega por
 | `FRONTEND_URL` | practice-service | `https://practicashub-front.onrender.com` (en local, `http://localhost:5173`) |
 
 En Render, `BREVO_API_KEY` y `EMAIL_FROM` van en el grupo nuevo `practicashub-correo` (se ingresan a mano), y `FRONTEND_URL` ya viene en `render.yaml`.
+
+## Evaluación del centro de práctica (etapa 2: pautas)
+
+El docente configura, en la sección **Evaluación** de su grupo, cuántas veces evalúa el supervisor y con qué pauta. El envío al supervisor y el formulario que este llena corresponden a la etapa 3.
+
+### Configuración
+| Modo | Pautas que se piden |
+|---|---|
+| `UNA_INTERMEDIA` | `INTERMEDIA` (al 50 % de las horas) |
+| `UNA_FINAL` | `FINAL` (al 100 %), como en Duoc |
+| `DOS_MISMA` | `AMBAS` (la misma pauta para el 50 % y el 100 %) |
+| `DOS_DISTINTAS` | `INTERMEDIA` y `FINAL`, cada una se publica cuando el docente quiera |
+
+El modo deja de poder cambiarse cuando ya se envió alguna evaluación (pauta `locked`).
+
+### Pauta
+- **Secciones** (máximo 10), cada una con «cuenta para la nota final».
+- **Criterios** (máximo 40):
+  - `NOTA`: de 1 a 7, puede admitir «No aplica».
+  - `CALCULADO`: promedio de otra sección; no se permiten cadenas de calculados.
+  - `ACTIVIDADES`: el supervisor escribe entre el mínimo (1 por defecto) y 30.
+  - `TEXTO`: respuesta abierta, sin nota.
+- **Ponderaciones** opcionales: en una sección, todos los criterios con nota o ninguno, y deben sumar 100 %.
+- **Nota final**: promedio de las secciones finales. Cada sección se calcula ponderada o como promedio simple, donde cada actividad cuenta como un criterio. «No aplica» no cuenta. Escala 1,0 a 7,0.
+- **Estados**: `BORRADOR` → `PUBLICADA`. Si la publicada ya se usó, al publicar otra pasa a `REEMPLAZADA` y se conserva. Si no se usó, se reemplaza.
+- Las reglas están en `EvaluationTemplateService` (backend) y en `utils/pauta.js` (front). Si se cambia una, hay que cambiar la otra.
+
+### Lectura de plantillas (document-service)
+- `POST /api/documents/evaluation-templates/parse` (multipart `file`, solo docentes): devuelve un **borrador** con advertencias. **El archivo no se guarda.**
+- **Formatos**: Excel `.xlsx`, Word `.docx` y PDF con texto, hasta 5 MB. Se revisa el contenido real del archivo, no solo la extensión.
+- Un PDF sin texto se rechaza («parece escaneado»). `.xls` y `.doc` se rechazan.
+- **Qué detecta**:
+  - la tabla de notas (columnas 1 a 7, 1 a 10 o conceptos);
+  - los criterios hasta la fila «Calificación / Promedio / Total»;
+  - las filas vacías dentro de la tabla, que pasan a ser la lista de actividades;
+  - los criterios calculados (texto «autocompleta» o una fórmula que apunta al resultado de otra tabla);
+  - las instrucciones (el texto largo antes de la primera tabla);
+  - la columna de ponderación;
+  - los campos «Observaciones / Comentarios».
+- Los datos de identificación (nombre, RUT, empresa, firma) se ignoran.
+- Dependencias nuevas: `poi-ooxml` 5.4.1 y `pdfbox` 3.0.5.
+
+### Endpoints (practice-service, docente dueño del grupo)
+| Método | Ruta |
+|---|---|
+| GET | `/api/groups/{groupId}/evaluation` |
+| PUT | `/api/groups/{groupId}/evaluation/mode` `{mode}` |
+| PUT | `/api/groups/{groupId}/evaluation/templates/{slot}` (guarda el borrador) |
+| POST | `/api/groups/{groupId}/evaluation/templates/{slot}/publish` |
+| DELETE | `/api/groups/{groupId}/evaluation/templates/{slot}/draft` |
+
+Tablas nuevas: `evaluation_templates`, `evaluation_template_sections` y `evaluation_template_items`. Columna nueva: `practice_group.evaluation_mode`.
+
+## Evaluación del supervisor (etapa 3: envío, respuestas y publicación)
+
+### Flujo
+1. **Envío automático:** de lunes a viernes a las 9:45 (America/Santiago), cada estudiante que llegó al 50 % o al 100 % de la meta de horas, según el modo del grupo, genera una evaluación y su supervisor recibe un correo con el enlace `/supervisor/evaluacion/:token`. Si la pauta de ese momento no está publicada, la evaluación queda en `ESPERANDO_PAUTA` y el docente recibe un aviso. Al publicar la pauta, las evaluaciones que esperaban se envían de inmediato.
+2. **Recordatorios:** si el supervisor no responde, recibe un recordatorio a los 5 días, como máximo 2. Cada correo trae un enlace nuevo que vence a los 7 días.
+3. **Formulario del supervisor:** pide notas de 1 a 7, «No aplica» solo donde la pauta lo permite, las actividades (descripción y nota, entre el mínimo y 30) y las respuestas abiertas. Los criterios calculados y la nota se calculan en vivo. **No se puede enviar con campos vacíos**: se revisa en el navegador y en el servidor. Una vez enviada, la evaluación ya no se puede modificar.
+4. **Docente:** en el detalle del estudiante ve el estado y la nota de cada evaluación, y tiene *Enviar evaluación ahora*, *Copiar enlace*, *Ver detalle* y *Publicar al estudiante*. En la sección Evaluación tiene la *Vista previa* de cada pauta y el botón para publicar todas las respondidas de un momento.
+5. **Estudiante:** no ve nada hasta que el docente publica. Entonces recibe una notificación y la evaluación aparece en el resumen de su práctica.
+
+Al enviar la primera evaluación, la pauta queda **bloqueada**: un cambio posterior crea otra versión, y las evaluaciones ya enviadas conservan la suya.
+
+### Nota
+- La misma regla está en `EvaluationGradeCalculator` (Java) y en `calcularNota` de `utils/pauta.js` (front).
+- Con la pauta de Duoc, la nota es el promedio de la sección 5: la nota de «Realiza las tareas…», el promedio de la sección 6 y cada actividad.
+- Se redondea a un decimal.
+
+### Endpoints
+| Método | Ruta | Quién |
+|---|---|---|
+| GET | `/api/enrollments/{id}/evaluations` | docente (todos los momentos) o estudiante (solo las publicadas) |
+| POST | `/api/enrollments/{id}/evaluations/{INTERMEDIA\|FINAL}/send` | docente |
+| POST | `/api/enrollments/{id}/evaluations/{momento}/link` | docente |
+| POST | `/api/enrollments/{id}/evaluations/{momento}/publish` | docente |
+| GET | `/api/groups/{groupId}/evaluation/results` | docente |
+| POST | `/api/groups/{groupId}/evaluation/results/{momento}/publish` | docente |
+| GET / POST | `/api/public/evaluation/{token}` | supervisor (token) |
+
+Tablas nuevas: `supervisor_evaluations` y `evaluation_answers`. Columna nueva: `supervisor_access_tokens.evaluation_id`.
+
+En el modo simulado del front no hay tarea diaria: la evaluación se envía con «Enviar evaluación ahora» y el enlace aparece en la consola del navegador.

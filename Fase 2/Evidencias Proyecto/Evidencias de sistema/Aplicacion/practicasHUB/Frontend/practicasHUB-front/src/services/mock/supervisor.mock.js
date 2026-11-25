@@ -169,7 +169,8 @@ export const enviarAhora = (vinculacionId) => ejecutar(() => {
 const enlaceValido = (datos, token) => {
   const enlace = datos.enlacesSupervisor.find((e) => e.token === token);
   const vinculacion = enlace && datos.vinculaciones.find((v) => v.id === enlace.vinculacionId);
-  if (!enlace || enlace.revocadoEn || new Date(enlace.venceEn) < ahora()
+  // Un enlace de evaluación (con `proposito`) no sirve para validar jornadas.
+  if (!enlace || enlace.proposito || enlace.revocadoEn || new Date(enlace.venceEn) < ahora()
     || !vinculacion || vinculacion.supervisor?.correo !== enlace.correo) {
     throw new ErrorServicio(ERRORES.NO_ENCONTRADO, ENLACE_INVALIDO);
   }

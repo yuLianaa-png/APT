@@ -21,6 +21,7 @@ import { ahoraISO } from './reloj';
 import {
   ErrorServicio, exigirExista, exigirGrupoActivo, fallar, notificar, responder,
 } from './soporte';
+import { entregaDesactualizada } from '../../utils/entregas';
 
 /** Todas las entregas de un documento. Para la tarjeta del docente (§5.18). */
 export const listarPorDocumento = (documentoId) =>
@@ -79,7 +80,9 @@ export const enviar = (entregaId, archivo, estudianteId = null) => {
         );
       }
 
-      if (entrega.estado === ESTADO_ENTREGA.ENTREGADO) {
+      // Si el docente cambió el archivo después de la entrega, se puede volver a entregar.
+      if (entrega.estado === ESTADO_ENTREGA.ENTREGADO
+        && !entregaDesactualizada(entrega, documento.versionVigente)) {
         throw new ErrorServicio(
           ERRORES.NO_AUTORIZADO,
           'Tu entrega ya está enviada. El reemplazo solo se habilita si el docente pide una corrección.',

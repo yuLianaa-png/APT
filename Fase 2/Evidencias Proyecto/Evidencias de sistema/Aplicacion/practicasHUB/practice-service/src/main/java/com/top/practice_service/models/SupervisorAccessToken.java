@@ -35,4 +35,6 @@ public class SupervisorAccessToken {
     private LocalDateTime expiresAt;
     private LocalDateTime revokedAt;
     private LocalDateTime lastUsedAt;
+
+    private Long evaluationId;
 }

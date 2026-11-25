@@ -27,6 +27,7 @@ const SECCIONES_GRUPO = {
     { parte: 'estudiantes', etiqueta: 'Estudiantes' },
     { parte: 'jornadas', etiqueta: 'Jornadas' },
     { parte: 'documentos', etiqueta: 'Documentos' },
+    { parte: 'evaluacion', etiqueta: 'Evaluación' },
     { parte: 'mensajes', etiqueta: 'Mensajes' },
     { parte: 'notificaciones', etiqueta: 'Notificaciones', contador: true },
   ],

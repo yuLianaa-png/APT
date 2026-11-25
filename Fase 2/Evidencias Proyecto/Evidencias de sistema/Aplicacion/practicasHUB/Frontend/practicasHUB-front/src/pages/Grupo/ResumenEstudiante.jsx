@@ -7,6 +7,7 @@ import { grupoService } from '../../services';
 import { formatearHoras } from '../../utils/horas';
 import { formatearFecha } from '../../utils/fechas';
 import { NIVEL_RIESGO } from '../../utils/constants';
+import { TarjetaEvaluaciones } from '../../components/evaluacion';
 import {
   Aviso, Boton, Cargando, EstadoError, Indicador, Indicadores,
 } from '../../components/ui';
@@ -102,6 +103,9 @@ const ResumenEstudiante = () => {
           .
         </Aviso>
       )}
+
+      {/* Evaluación del supervisor: solo aparece cuando el docente la publica. */}
+      {datos.vinculacionId && <TarjetaEvaluaciones vinculacionId={datos.vinculacionId} />}
 
       {/* RN-06 en palabras, para que nadie lea la barra al 100 % como un final. */}
       {datos.metaAlcanzada && (

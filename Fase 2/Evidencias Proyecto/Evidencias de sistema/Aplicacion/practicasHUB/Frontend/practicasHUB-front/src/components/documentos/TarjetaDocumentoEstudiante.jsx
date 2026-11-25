@@ -79,6 +79,13 @@ const TarjetaDocumentoEstudiante = ({
             </div>
           )}
 
+          {entrega.desactualizada && (
+            <Aviso tono="espera" titulo="El docente cambió el archivo">
+              {`Tu entrega se hizo con la versión ${entrega.versionDocumentoUsada} del documento y ahora rige la versión ${documento.versionVigente}. `}
+              Descarga el archivo nuevo y vuelve a entregar. Tu entrega anterior se conserva en el historial.
+            </Aviso>
+          )}
+
           <div className="ph-fila" style={{ alignItems: 'flex-start' }}>
             {entrega.estado === ESTADO_ENTREGA.PENDIENTE && (
               <Boton
@@ -86,7 +93,7 @@ const TarjetaDocumentoEstudiante = ({
                 motivoBloqueo={motivoBloqueo}
                 onClick={() => alEntregar(documento, entrega)}
               >
-                Entregar
+                {entrega.desactualizada ? 'Volver a entregar' : 'Entregar'}
               </Boton>
             )}
 

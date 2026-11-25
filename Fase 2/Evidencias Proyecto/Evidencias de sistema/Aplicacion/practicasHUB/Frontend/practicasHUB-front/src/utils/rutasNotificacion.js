@@ -69,6 +69,10 @@ export const destinoDe = (notificacion, rol, extras = {}) => {
     case TIPO_REFERENCIA.VINCULACION:
       return rol === ROLES.DOCENTE ? `${raiz}/estudiantes/${id}` : `${raiz}/jornadas`;
 
+    // Evaluación del centro de práctica: el docente va a su configuración; el estudiante, al resumen.
+    case TIPO_REFERENCIA.EVALUACION:
+      return rol === ROLES.DOCENTE ? `${raiz}/evaluacion` : `${raiz}/resumen`;
+
     default:
       return null;
   }
