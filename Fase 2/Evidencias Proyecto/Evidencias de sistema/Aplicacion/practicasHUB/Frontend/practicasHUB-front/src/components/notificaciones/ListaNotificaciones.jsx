@@ -1,10 +1,15 @@
+import { useState } from 'react';
 import { Boton, EstadoVacio } from '../ui';
 import { ETIQUETAS, TIPO_NOTIFICACION } from '../../utils/constants';
 import { formatearInstante } from '../../utils/fechas';
 
 
 
- /// Lista de notificaciones, compartida por la bandeja general y la del grupo.
+ /// Lista de notificaciones, compartida por la bandeja general y la del grupo. Muestra primero
+ /// las no vistas y deja elegir ver todas.
+
+/** Qué notificaciones se muestran. */
+const FILTRO = { NO_VISTAS: 'NO_VISTAS', TODAS: 'TODAS' };
 
 
 /** Un signo por tipo. Es refuerzo: el mensaje ya dice qué pasó. */
@@ -24,6 +29,14 @@ const SIGNOS = {
   [TIPO_NOTIFICACION.GRUPO_REACTIVADO]: '▶',
   [TIPO_NOTIFICACION.GRUPO_ELIMINADO]: '✕',
   [TIPO_NOTIFICACION.ALERTAS_RIESGO]: '!',
+  [TIPO_NOTIFICACION.RECORDATORIO_RIESGO]: '!',
+  [TIPO_NOTIFICACION.PLAN_SEGUIMIENTO]: '✎',
+  [TIPO_NOTIFICACION.MENSAJE_RECIBIDO]: '✉',
+  [TIPO_NOTIFICACION.SUPERVISOR_ACTUALIZADO]: '↻',
+  [TIPO_NOTIFICACION.OBSERVACION_SUPERVISOR]: '!',
+  [TIPO_NOTIFICACION.EVALUACION_SIN_PAUTA]: '!',
+  [TIPO_NOTIFICACION.EVALUACION_RECIBIDA]: '↓',
+  [TIPO_NOTIFICACION.EVALUACION_PUBLICADA]: '★',
 };
 
 const TONOS = {
@@ -40,6 +53,14 @@ const TONOS = {
   [TIPO_NOTIFICACION.GRUPO_REACTIVADO]: 'exito',
   [TIPO_NOTIFICACION.GRUPO_ELIMINADO]: 'error',
   [TIPO_NOTIFICACION.ALERTAS_RIESGO]: 'espera',
+  [TIPO_NOTIFICACION.RECORDATORIO_RIESGO]: 'espera',
+  [TIPO_NOTIFICACION.PLAN_SEGUIMIENTO]: 'info',
+  [TIPO_NOTIFICACION.MENSAJE_RECIBIDO]: 'info',
+  [TIPO_NOTIFICACION.SUPERVISOR_ACTUALIZADO]: 'info',
+  [TIPO_NOTIFICACION.OBSERVACION_SUPERVISOR]: 'espera',
+  [TIPO_NOTIFICACION.EVALUACION_SIN_PAUTA]: 'espera',
+  [TIPO_NOTIFICACION.EVALUACION_RECIBIDA]: 'exito',
+  [TIPO_NOTIFICACION.EVALUACION_PUBLICADA]: 'exito',
 };
 
 const ListaNotificaciones = ({
@@ -49,6 +70,8 @@ const ListaNotificaciones = ({
   abriendo = null,
   vacio = null,
 }) => {
+  const [filtro, setFiltro] = useState(FILTRO.NO_VISTAS);
+
   if (notificaciones.length === 0) {
     return vacio ?? (
       <EstadoVacio titulo="No tienes novedades">
@@ -58,52 +81,88 @@ const ListaNotificaciones = ({
     );
   }
 
+  // `leida` es como estaba al abrir la página: la página las marca leídas en el servidor,
+  // pero la lista recuerda cuáles eran nuevas mientras el usuario no la recargue.
+  const noVistas = notificaciones.filter((aviso) => aviso.leida === false);
+  const visibles = filtro === FILTRO.NO_VISTAS ? noVistas : notificaciones;
+
   return (
-    <ul className="ph-notificaciones">
-      {notificaciones.map((aviso) => {
-        const tono = TONOS[aviso.tipo] ?? 'neutro';
+    <div className="ph-pila">
+      <div className="ph-fila" role="group" aria-label="Qué notificaciones mostrar">
+        <Boton
+          tamano="pequeno"
+          variante={filtro === FILTRO.NO_VISTAS ? 'primario' : 'secundario'}
+          aria-pressed={filtro === FILTRO.NO_VISTAS}
+          onClick={() => setFiltro(FILTRO.NO_VISTAS)}
+        >
+          {`No vistas (${noVistas.length})`}
+        </Boton>
+        <Boton
+          tamano="pequeno"
+          variante={filtro === FILTRO.TODAS ? 'primario' : 'secundario'}
+          aria-pressed={filtro === FILTRO.TODAS}
+          onClick={() => setFiltro(FILTRO.TODAS)}
+        >
+          {`Todas (${notificaciones.length})`}
+        </Boton>
+      </div>
 
-        return (
-          <li key={aviso.id} className="ph-notificacion">
-            <span
-              className={`ph-notificacion__signo ph-notificacion__signo--${tono}`}
-              aria-hidden="true"
-            >
-              {SIGNOS[aviso.tipo] ?? '·'}
-            </span>
+      {visibles.length === 0 ? (
+        <EstadoVacio titulo="Estás al día">
+          No tienes notificaciones nuevas.
+          {' '}
+          <button type="button" className="ph-enlace-sutil" onClick={() => setFiltro(FILTRO.TODAS)}>
+            Ver todas las notificaciones
+          </button>
+        </EstadoVacio>
+      ) : (
+        <ul className="ph-notificaciones">
+          {visibles.map((aviso) => {
+            const tono = TONOS[aviso.tipo] ?? 'neutro';
 
-            <div className="ph-notificacion__cuerpo">
-              {/* §9: el grupo de origen, antes de navegar. */}
-              {mostrarGrupo && (
-                <p className="ph-notificacion__origen">
-                  <strong>{aviso.grupoNombre}</strong>
-                  <code>{aviso.grupoCodigo}</code>
-                </p>
-              )}
+            return (
+              <li key={aviso.id} className="ph-notificacion">
+                <span
+                  className={`ph-notificacion__signo ph-notificacion__signo--${tono}`}
+                  aria-hidden="true"
+                >
+                  {SIGNOS[aviso.tipo] ?? '·'}
+                </span>
 
-              <p className="ph-notificacion__tipo">
-                {ETIQUETAS.TIPO_NOTIFICACION[aviso.tipo] ?? 'Novedad'}
-                {aviso.leida === false && <span className="ph-notificacion__nueva">Nueva</span>}
-              </p>
-              <p className="ph-notificacion__mensaje">{aviso.mensaje}</p>
-              <p className="ph-campo__ayuda">{formatearInstante(aviso.creadaEn)}</p>
-            </div>
+                <div className="ph-notificacion__cuerpo">
+                  {/* §9: el grupo de origen, antes de navegar. */}
+                  {mostrarGrupo && (
+                    <p className="ph-notificacion__origen">
+                      <strong>{aviso.grupoNombre}</strong>
+                      <code>{aviso.grupoCodigo}</code>
+                    </p>
+                  )}
 
-            {/* Sin referencia (por ejemplo, un grupo eliminado) no hay nada que abrir. */}
-            {aviso.referencia && (
-              <Boton
-                variante="secundario"
-                tamano="pequeno"
-                disabled={abriendo === aviso.id}
-                onClick={() => alVer(aviso)}
-              >
-                {abriendo === aviso.id ? 'Abriendo…' : 'Ver'}
-              </Boton>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+                  <p className="ph-notificacion__tipo">
+                    {ETIQUETAS.TIPO_NOTIFICACION[aviso.tipo] ?? 'Novedad'}
+                    {aviso.leida === false && <span className="ph-notificacion__nueva">Nueva</span>}
+                  </p>
+                  <p className="ph-notificacion__mensaje">{aviso.mensaje}</p>
+                  <p className="ph-campo__ayuda">{formatearInstante(aviso.creadaEn)}</p>
+                </div>
+
+                {/* Sin referencia (por ejemplo, un grupo eliminado) no hay nada que abrir. */}
+                {aviso.referencia && (
+                  <Boton
+                    variante="secundario"
+                    tamano="pequeno"
+                    disabled={abriendo === aviso.id}
+                    onClick={() => alVer(aviso)}
+                  >
+                    {abriendo === aviso.id ? 'Abriendo…' : 'Ver'}
+                  </Boton>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 };
 
