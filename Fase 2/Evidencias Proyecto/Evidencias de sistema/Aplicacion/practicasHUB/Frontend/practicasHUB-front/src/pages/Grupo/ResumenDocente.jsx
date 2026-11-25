@@ -155,7 +155,7 @@ const ResumenDocente = () => {
                   )}
                   <span className="ph-campo__ayuda">{fila.riesgo.motivos.join(' ')}</span>
                 </div>
-                <div className="ph-fila">
+                <div className="ph-alertas__acciones">
                   <Link
                     className="ph-boton ph-boton--tenue ph-boton--pequeno"
                     to={`${base}/mensajes?vinculacion=${fila.vinculacionId}`}

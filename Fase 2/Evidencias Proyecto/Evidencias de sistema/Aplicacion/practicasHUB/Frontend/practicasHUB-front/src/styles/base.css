@@ -333,7 +333,13 @@ img { max-width: 100%; }
 .ph-tabla tbody tr:hover { background: var(--ph-gris-050); }
 
 .ph-tabla__numero { font-variant-numeric: tabular-nums; }
-.ph-tabla__acciones { display: flex; gap: var(--ph-esp-2); flex-wrap: wrap; }
+.ph-tabla__acciones { white-space: nowrap; }
+.ph-tabla__acciones-contenido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ph-esp-2);
+}
 
 /* ----------------------------------------------------------------- Filtros */
 
@@ -1388,9 +1394,22 @@ code {
 .ph-alertas__fila:first-child { border-top: none; }
 .ph-alertas__cuerpo {
   display: flex;
+  flex: 1;
+  min-width: 0;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--ph-esp-2);
+}
+/* Botones de cada alerta: siempre juntos, en una línea y alineados al centro de la fila. */
+.ph-alertas__acciones {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--ph-esp-2);
+}
+@media (max-width: 640px) {
+  .ph-alertas__fila { flex-direction: column; align-items: stretch; }
+  .ph-alertas__acciones { justify-content: flex-end; }
 }
 .ph-alertas__cuerpo .ph-campo__ayuda { flex-basis: 100%; }
 

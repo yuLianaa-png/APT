@@ -34,9 +34,9 @@ const mensajeDelError = (error) => {
     return 'No se pudo conectar con el servidor. Revisa tu conexión e intenta nuevamente en un minuto.';
   }
 
-  // 502, 503 y 504 los responde el hosting (Render) mientras un servicio despierta o se
-  // reinicia: el cuerpo es su página HTML de error, que no sirve para el usuario.
-  if ([502, 503, 504].includes(error.response.status)) return SERVIDOR_INICIANDO;
+  // 429, 502, 503 y 504 los responde el hosting (Render) mientras un servicio despierta o se
+  // reinicia: el cuerpo es su página de error («Too Many Requests»), que no sirve al usuario.
+  if ([429, 502, 503, 504].includes(error.response.status)) return SERVIDOR_INICIANDO;
 
   const cuerpo = error.response.data;
   let texto = '';

@@ -33,7 +33,12 @@ const Tabla = ({
           {filas.map((fila, indice) => (
             <tr key={claveFila(fila, indice)} className={claseFila ? claseFila(fila) : undefined}>
               {columnas.map((columna, posicion) => {
-                const contenido = celda(fila, columna, indice);
+                const valor = celda(fila, columna, indice);
+                // Los botones van en un contenedor propio: si el flex se pusiera en la celda,
+                // esta dejaría de ser celda de tabla y su borde no quedaría alineado con la fila.
+                const contenido = columna.acciones
+                  ? <div className="ph-tabla__acciones-contenido">{valor}</div>
+                  : valor;
                 const clases = [
                   columna.numerica ? 'ph-tabla__numero' : '',
                   columna.acciones ? 'ph-tabla__acciones' : '',
